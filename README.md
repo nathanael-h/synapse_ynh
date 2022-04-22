@@ -14,7 +14,7 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.52.0
+**Shipped version:** 1.56.0
 
 ## Configuration
 
@@ -175,7 +175,7 @@ After this settings will be applied for **all** next upgrade.
 
 From command line:
 
-`yunohost app upgrade seafile`
+`yunohost app upgrade synapse`
 
 ### Backup
 
