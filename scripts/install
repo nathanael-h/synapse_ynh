@@ -407,19 +407,11 @@ ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destin
 #=================================================
 # SETUP PERMISSIONS
 #=================================================
-#REMOVEME? ynh_script_progression --message="Configuring permissions..." --weight=1
 
-ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
-#REMOVEME? ynh_permission_update --permission=main --show_tile=false --protected=true
+ynh_script_progression --message="Configuring permissions..." --weight=1
 
-#REMOVEME? ynh_permission_create --permission=server_api --url=$domain/_matrix \
-                      --label="Server access for client apps." --show_tile=false --allowed=visitors \
-                      --auth_header=false --protected=true
-#REMOVEME? ynh_permission_create --permission=admin_api --url=$domain/_synapse \
-                      --label="Server administration API." --show_tile=false \
-                      --auth_header=false --allowed=visitors
 if yunohost --output-as plain domain list | grep -q "^$server_name$"; then
-#REMOVEME?     ynh_permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
+    ynh_permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
                           --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
                           --auth_header=false --protected=true
 fi
