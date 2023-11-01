@@ -203,7 +203,9 @@ Before installing a second instance of the app it's really recommended to update
 ## Documentation and resources
 
 * Official app website: <https://matrix.org/>
+* Official admin documentation: <https://matrix-org.github.io/synapse/latest/welcome_and_overview.html>
 * Upstream app code repository: <https://github.com/matrix-org/synapse>
+* YunoHost Store: <https://apps.yunohost.org/app/synapse>
 * Report a bug: <https://github.com/YunoHost-Apps/synapse_ynh/issues>
 
 ## Developer info
