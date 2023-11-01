@@ -26,7 +26,7 @@ for example
 ```
 _matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.example.com.
 ```
-You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME synapse_tls_port`
+You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME port_synapse_tls`
 
 For more details, see : https://github.com/matrix-org/synapse/blob/master/docs/federate.md
 
@@ -40,8 +40,8 @@ https://federationtester.matrix.org/ can be used to easily debug federation issu
 
 For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listens on two UDP and TCP ports. You can get them with these commands:
 ```
-yunohost app setting synapse turnserver_tls_port
-yunohost app setting synapse turnserver_alt_tls_port
+yunohost app setting synapse port_turnserver_tls
+yunohost app setting synapse port_turnserver_alt_tls
 
 ```
 The turnserver will also choose a port dynamically when a new call starts. The range is between 49153 - 49193.
@@ -136,12 +136,6 @@ Then, to log in the API with your credentials, you need to set your user as admi
 
 ### Upgrade
 
-By default a backup is made before the upgrade. If for some reason you want to upgrade without backup:
-- Call the command with the `-b` flag: `yunohost app upgrade synapse -b`
-- Disable the setting `Backup before upgrade` in the Config Panel. Or with command line:
-
-`yunohost app setting synapse backup_before_upgrade -v 0`
-
 After this settings will be applied for **all** next upgrade.
 
 From command line:
@@ -175,7 +169,7 @@ Use the `--purge` flag with the command, or remove it manually to purge app user
 
 To give a possibility to have multiple domains you can use multiple instances of synapse. In this case all instances will run on different ports so it's really important to put a SRV record in your domain. You can get the port that you need to put in your SRV record with this following command:
 ```
-yunohost app setting synapse__<instancenumber> synapse_tls_port
+yunohost app setting synapse__<instancenumber> port_synapse_tls
 ```
 
 Before installing a second instance of the app it's really recommended to update all existing instances.

@@ -285,7 +285,7 @@ listeners:
   # will also need to give Synapse a TLS key and certificate: see the TLS section
   # below.)
   #
-  - port: __SYNAPSE_TLS_PORT__
+  - port: __PORT_SYNAPSE_TLS__
     type: http
     tls: true
     resources:
@@ -297,7 +297,7 @@ listeners:
   # If you plan to use a reverse proxy, please see
   # https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
   #
-  - port: __PORT__
+  - port: __PORT_SYNAPSE__
     tls: false
     type: http
     x_forwarded: true
@@ -801,9 +801,9 @@ database:
  name: psycopg2
  #txn_limit: 10000
  args:
-   user: __SYNAPSE_DB_USER__
-   password: __SYNAPSE_DB_PWD__
-   database: __SYNAPSE_DB_NAME__
+   user: __DB_USER__
+   password: __DB_PWD__
+   database: __DB_NAME__
    host: localhost
    port: 5432
    cp_min: 5
@@ -1178,7 +1178,7 @@ oembed:
 
 # The public URIs of the TURN server to give to clients
 #
-turn_uris: [ "turn:__DOMAIN__:__TURNSERVER_TLS_PORT__?transport=udp", "turn:__DOMAIN__:__TURNSERVER_TLS_PORT__?transport=tcp" ]
+turn_uris: [ "turn:__DOMAIN__:__PORT_TURNSERVER_TLS__?transport=udp", "turn:__DOMAIN__:__PORT_TURNSERVER_TLS__?transport=tcp" ]
 
 # The shared secret used to compute passwords for the TURN server
 #
@@ -1271,9 +1271,7 @@ enable_registration: __ENABLE_REGISTRATION__
 
 # The user must provide all of the below types of 3PID when registering.
 #
-registrations_require_3pid:
- - email
-# - msisdn
+_REGISTRATION_REQUIRE_3PID_SED_PARAM_
 
 # Explicitly disable asking for MSISDNs from the registration
 # flow (overrides registrations_require_3pid if MSISDNs are set as required)
@@ -1283,6 +1281,7 @@ disable_msisdn_registration: __DISABLE_MSISDN_REGISTRATION__
 # Mandate that users are only allowed to associate certain formats of
 # 3PIDs with accounts on this server.
 #
+_ALLOWD_LOCAL_3PIDS_SED_PARAM_
 #allowed_local_3pids:
 #  - medium: email
 #    pattern: '^[^@]+@vector\.im$'
@@ -1356,9 +1355,9 @@ default_identity_server: __DEFAULT_IDENTITY_SERVER__
 # by the Matrix Identity Service API specification:
 # https://matrix.org/docs/spec/identity_service/latest
 #
-# As email delegates is managed by the synapse server itself this email section is 
+# As email delegates is managed by the synapse server itself this email section is
 # not necessary but msisdn format is still composed by msisdn: <value> on a new line
-account_threepid_delegates: 
+account_threepid_delegates:
     msisdn: __ACCOUNT_THREEPID_DELEGATES_MSISDN__
     #email: https://example.com     # Delegate email sending to example.com
     #msisdn: http://localhost:8090  # Delegate SMS sending to this local process
@@ -1395,8 +1394,7 @@ account_threepid_delegates:
 # If the room already exists, make certain it is a publicly joinable
 # room. The join rule of the room must be set to 'public'.
 #
-auto_join_rooms:
-  - "#example:example.com"
+_AUTO_JOIN_ROOMS_SED_PARAM_
 
 # Where auto_join_rooms are specified, setting this flag ensures that the
 # the rooms exist by creating them when the first user on the
@@ -2089,7 +2087,7 @@ sso:
     # By default, this list contains only the login fallback page.
     #
     client_whitelist:
-__DOMAIN_WHITELIST_CLIENT__
+_DOMAIN_WHITELIST_CLIENT_
 
     # Uncomment to keep a user's profile fields in sync with information from
     # the identity provider. Currently only syncing the displayname is
@@ -2247,12 +2245,12 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-       bind_dn: "uid=__SYNAPSE_USER_APP__,ou=users,dc=yunohost,dc=org"
-       bind_password: __SYNAPSE_USER_APP_PWD__
+       # bind_dn: "uid=_SYNAPSE_USER_APP_,ou=users,dc=yunohost,dc=org"
+       # bind_password: _SYNAPSE_USER_APP_PWD_
        filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
 
 
-    
+
 # Configuration for sending emails from Synapse.
 #
 # Server admins can configure custom templates for email content. See
@@ -2270,8 +2268,8 @@ email:
   # Username/password for authentication to the SMTP server. By default, no
   # authentication is attempted.
   #
-  smtp_user: __SYNAPSE_USER_APP__
-  smtp_pass: __SYNAPSE_USER_APP_PWD__
+  # smtp_user: _SYNAPSE_USER_APP_
+  # smtp_pass: _SYNAPSE_USER_APP_PWD_
 
   # Uncomment the following to require TLS transport security for SMTP.
   # By default, Synapse will connect over plain text, and will then switch to
@@ -2298,7 +2296,7 @@ email:
   # Note that the placeholder must be written '%(app)s', including the
   # trailing 's'.
   #
-  notif_from: "Your Friendly %(app)s Home Server <__SYNAPSE_USER_APP__@__DOMAIN__>"
+  notif_from: "Your Friendly %(app)s Home Server <__APP__@__DOMAIN__>"
 
   # app_name defines the default value for '%(app)s' in notif_from and email
   # subjects. It defaults to 'Matrix'.
