@@ -85,7 +85,7 @@ ram.runtime = "200M"
 
     [resources.permissions]
     main.url = "/"
-    main.additional_url = "__DOMAIN__/_matrix/cas_server.php/login"
+    main.additional_urls = ["__DOMAIN__/_matrix/cas_server.php/login"]
     main.label = "Server SSO"
     main.auth_header = true
     main.show_tile=false

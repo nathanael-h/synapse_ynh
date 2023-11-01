@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=matrix-__APP__
+User=__APP__
 WorkingDirectory=/opt/yunohost/matrix-__APP__
 BindPaths=/etc/matrix-__APP__
 EnvironmentFile=/etc/default/matrix-__APP__
@@ -41,7 +41,7 @@ CapabilityBoundingSet=~CAP_BLOCK_SUSPEND CAP_WAKE_ALARM
 CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
 CapabilityBoundingSet=~CAP_MAC_ADMIN CAP_MAC_OVERRIDE
 CapabilityBoundingSet=~CAP_NET_ADMIN CAP_NET_BROADCAST CAP_NET_RAW
-CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG 
+CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG
 
 [Install]
 WantedBy=multi-user.target

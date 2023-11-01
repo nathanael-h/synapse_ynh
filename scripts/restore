@@ -27,6 +27,14 @@ adduser $YNH_APP_ID ssl-cert
 adduser turnserver ssl-cert
 
 #=================================================
+# FIX DB CONFIG
+#=================================================
+ynh_script_progression --message="Fixing database type..." --weight=1
+
+ynh_psql_execute_as_root \
+    --sql="update pg_database set datcollate='C', datctype='C' where datname='$db_name';"
+
+#=================================================
 # RESTORE ALL CONFIG AND DATA
 #=================================================
 

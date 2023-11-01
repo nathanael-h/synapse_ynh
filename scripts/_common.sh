@@ -68,7 +68,7 @@ configure_synapse() {
         | sed -z 's|\n|\\n|g')
     local macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
     local auto_join_rooms_sed_param=""
-    if [ -n $auto_join_rooms ]; then
+    if [ -n "$auto_join_rooms" ]; then
         auto_join_rooms_sed_param='auto_join_rooms:\n  - "'$auto_join_rooms'"'
     fi
     local registration_require_3pid_sed_param=""
