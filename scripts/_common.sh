@@ -64,7 +64,7 @@ configure_synapse() {
     local domain_whitelist_client=$(yunohost --output-as plain domain list \
         | grep -E "^#" -v \
         | sort | uniq \
-        | sed -r 's|^(.*)$|    - \1|' \
+        | sed -r 's|^(.*)$|      - \1|' \
         | sed -z 's|\n|\\n|g')
     local macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
     local auto_join_rooms_sed_param=""
