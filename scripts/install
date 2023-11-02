@@ -70,6 +70,7 @@ web_client_location=$element_ynh_url
 client_base_url=$element_ynh_url
 invite_client_location=$element_ynh_url
 
+ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
 ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
