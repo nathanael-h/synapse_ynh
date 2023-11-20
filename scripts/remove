@@ -84,10 +84,5 @@ ynh_script_progression --message="Removing the dedicated system user" --weight=1
 # Delete a system user
 yunohost user delete $YNH_APP_ID
 
-#=================================================
-# END OF SCRIPT
-#=================================================
-ynh_print_info --message="Due of the backup core only feature the data directory in '/home/yunohost.app/matrix-$app' was not removed. It need to be removed manually to purge app user data."
-
 ynh_script_progression --message="Removal of $app completed" --last
 sleep 1
