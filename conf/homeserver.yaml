@@ -2245,8 +2245,6 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-       # bind_dn: "uid=_SYNAPSE_USER_APP_,ou=users,dc=yunohost,dc=org"
-       # bind_password: _SYNAPSE_USER_APP_PWD_
        filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
 
 
@@ -2268,8 +2266,8 @@ email:
   # Username/password for authentication to the SMTP server. By default, no
   # authentication is attempted.
   #
-  # smtp_user: _SYNAPSE_USER_APP_
-  # smtp_pass: _SYNAPSE_USER_APP_PWD_
+  smtp_user: __APP__
+  smtp_pass: __MAIL_PWD__
 
   # Uncomment the following to require TLS transport security for SMTP.
   # By default, Synapse will connect over plain text, and will then switch to
