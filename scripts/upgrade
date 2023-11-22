@@ -111,7 +111,7 @@ then
 fi
 if [ -z "$max_upload_size" ]
 then
-    max_upload_size="50M"
+    max_upload_size="100M"
     ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
 fi
 if [ -z "$disable_msisdn_registration" ]
