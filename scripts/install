@@ -124,9 +124,9 @@ ynh_script_progression --message="Creating $app user..." --weight=1
 
 synapse_user_app_pwd="$(ynh_string_random --length=30)"
 ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
-# yunohost user create $YNH_APP_ID -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+# yunohost user create $app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
 
-adduser $YNH_APP_ID ssl-cert
+adduser $app ssl-cert
 adduser turnserver ssl-cert
 
 #=================================================
@@ -162,7 +162,7 @@ install_sources
 
 cp ../sources/cas_server.php $install_dir/
 chmod u=rwX,g=rX,o= -R $install_dir
-chown $YNH_APP_ID:$YNH_APP_ID -R $install_dir
+chown $app:$app -R $install_dir
 
 #=================================================
 # CREATE SYNAPSE CONFIG

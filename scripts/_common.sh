@@ -18,7 +18,7 @@ install_sources() {
     fi
 
     mkdir -p $code_dir
-    chown $YNH_APP_ID:root -R $code_dir
+    chown $app:root -R $code_dir
 
     if [ -n "$(uname -m | grep arm)" ]
     then
@@ -146,24 +146,24 @@ configure_nginx() {
 }
 
 set_permissions() {
-    chown $YNH_APP_ID:$YNH_APP_ID -R $code_dir
+    chown $app:$app -R $code_dir
     chmod o= -R $code_dir
 
     chmod 770 $code_dir/Coturn_config_rotate.sh
     chmod 700 $code_dir/update_synapse_for_appservice.sh
 
     find $data_dir \(   \! -perm -o= \
-                     -o \! -user $YNH_APP_ID \
-                     -o \! -group $YNH_APP_ID \) \
-                   -exec chown $YNH_APP_ID:$YNH_APP_ID {} \; \
+                     -o \! -user $app \
+                     -o \! -group $app \) \
+                   -exec chown $app:$app {} \; \
                    -exec chmod o= {} \;
 
-    chown $YNH_APP_ID:$YNH_APP_ID -R /etc/matrix-$app
+    chown $app:$app -R /etc/matrix-$app
     chmod u=rwX,g=rX,o= -R /etc/matrix-$app
     setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 
     chmod 600 /etc/matrix-$app/$server_name.signing.key
 
-    chown $YNH_APP_ID:root -R /var/log/matrix-$app
+    chown $app:root -R /var/log/matrix-$app
     setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 }

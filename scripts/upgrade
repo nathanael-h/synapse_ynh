@@ -217,7 +217,7 @@ if [ -z $synapse_user_app_pwd ]; then
     synapse_user_app_pwd="$(ynh_string_random --length=30)"
     ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
     # The format to create an user account varies depending on the version of YunoHost currently installed.
-    yunohost user create $YNH_APP_ID -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+    yunohost user create $app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
 fi
 
 # We stop the service
@@ -250,7 +250,7 @@ if [ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-$app" /etc/group) ]
 then
     ynh_script_progression --message="Use standard access for certificate..." --weight=1
 
-    adduser $YNH_APP_ID ssl-cert
+    adduser $app ssl-cert
     adduser turnserver ssl-cert
 fi
 
@@ -361,7 +361,7 @@ configure_synapse
 mkdir -p $install_dir
 cp ../sources/cas_server.php $install_dir/
 chmod u=rwX,g=rX,o= -R $install_dir
-chown $YNH_APP_ID:root -R $install_dir
+chown $app:root -R $install_dir
 
 
 #=================================================

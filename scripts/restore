@@ -22,8 +22,8 @@ ynh_script_progression --message="Loading settings..."
 ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
 
 # Create the dedicated user (if not existing)
-yunohost user create $YNH_APP_ID -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
-adduser $YNH_APP_ID ssl-cert
+yunohost user create $app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+adduser $app ssl-cert
 adduser turnserver ssl-cert
 
 #=================================================
