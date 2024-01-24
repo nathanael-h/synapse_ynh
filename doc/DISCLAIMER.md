@@ -28,7 +28,7 @@ _matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.exam
 ```
 You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME port_synapse_tls`
 
-For more details, see : https://github.com/matrix-org/synapse/blob/master/docs/federate.md
+For more details, see : https://github.com/element-hq/synapse/blob/master/docs/federate.md
 
 If it is not automatically done, you need to open this in your ISP box.
 

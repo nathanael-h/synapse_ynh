@@ -54,7 +54,7 @@ _matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.exam
 ```
 You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME port_synapse_tls`
 
-For more details, see : https://github.com/matrix-org/synapse/blob/master/docs/federate.md
+For more details, see : https://github.com/element-hq/synapse/blob/master/docs/federate.md
 
 If it is not automatically done, you need to open this in your ISP box.
 
@@ -204,7 +204,7 @@ Before installing a second instance of the app it's really recommended to update
 
 * Official app website: <https://matrix.org/>
 * Official admin documentation: <https://matrix-org.github.io/synapse/latest/welcome_and_overview.html>
-* Upstream app code repository: <https://github.com/matrix-org/synapse>
+* Upstream app code repository: <https://github.com/element-hq/synapse>
 * YunoHost Store: <https://apps.yunohost.org/app/synapse>
 * Report a bug: <https://github.com/YunoHost-Apps/synapse_ynh/issues>
 
