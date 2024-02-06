@@ -2,7 +2,7 @@ version = "1.0"
 
 [main]
 name = "Main Settings"
-services = ["matrix-__APP__"]
+services = ["__APP__"]
 
     [main.welcome]
     name = "Experience for new Users"
@@ -136,7 +136,7 @@ services = ["matrix-__APP__"]
 
 [resources]
 name = "Resource Usage"
-services = ["matrix-__APP__"]
+services = ["__APP__"]
 
     [resources.media]
     name = "Manage Media growth and clean-up"
