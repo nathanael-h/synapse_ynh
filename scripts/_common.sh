@@ -1,5 +1,5 @@
 
-
+python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
 main_domain=$(yunohost domain list --output-as json | jq -r .main)
 code_dir="/opt/yunohost/matrix-$app"
 base_api_url="/_matrix"
@@ -57,6 +57,14 @@ install_sources() {
         set +$u_arg;
         deactivate
         set -$u_arg;
+    fi
+
+    # Apply patch for LDAP auth if needed
+    env
+    if ! grep -F -q '# LDAP Filter anonymous user Applied' $code_dir/lib/python$python_version/site-packages/ldap_auth_provider.py; then
+        pushd $code_dir/lib/python$python_version/site-packages
+        patch < $YNH_APP_BASEDIR/sources/ldap_auth_filter_anonymous_user.patch
+        popd
     fi
 }
 
