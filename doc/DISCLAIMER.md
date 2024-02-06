@@ -39,7 +39,7 @@ https://federationtester.matrix.org/ can be used to easily debug federation issu
 ### Turnserver
 
 For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listens on two UDP and TCP ports. You can get them with these commands:
-```
+```bash
 yunohost app setting synapse port_turnserver_tls
 yunohost app setting synapse port_turnserver_alt_tls
 
@@ -48,7 +48,7 @@ The turnserver will also choose a port dynamically when a new call starts. The r
 
 For some security reason the ports range (49153 - 49193) isn't automatically open by default. If you want to use the synapse server for voip or conferencing you will need to open this port range manually. To do this just run this command:
 
-```
+```bash
 yunohost firewall allow Both 49153:49193
 ```
 
@@ -64,20 +64,20 @@ If you have a dynamic IP address, you also might need to update this config auto
 
 #### OpenVPN
 
-In case of you have an OpenVPN server you might want than `coturn-synapse` restart when the VPN restart. To do this create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
-```
+In case of you have an OpenVPN server you might want than `synapse-coturn` restart when the VPN restart. To do this create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
+```bash
 #!/bin/bash
 
 (
     sleep 5
-    sudo systemctl restart coturn-synapse.service
+    sudo systemctl restart synapse-coturn.service
 ) &
 exit 0
 ```
 
 Add this line in you sudo config file `/etc/sudoers`
 ```
-openvpn    ALL=(ALL) NOPASSWD: /bin/systemctl restart coturn-synapse.service
+openvpn    ALL=(ALL) NOPASSWD: /bin/systemctl restart synapse-coturn.service
 ```
 
 And add this line in your OpenVPN config file

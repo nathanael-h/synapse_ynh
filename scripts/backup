@@ -14,8 +14,8 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-if [[ ! "$(systemctl status matrix-$app.service)" =~ "Active: inactive (dead)" ]]; then
-    ynh_print_warn --message="It's hightly recommended to make your backup when the service is stopped. Please stop $app service with this command before to run the backup 'systemctl stop matrix-$app.service'"
+if [[ ! "$(systemctl status $app.service)" =~ "Active: inactive (dead)" ]]; then
+    ynh_print_warn --message="It's hightly recommended to make your backup when the service is stopped. Please stop $app service with this command before to run the backup 'systemctl stop $app.service'"
 fi
 
 #=================================================
@@ -71,9 +71,9 @@ ynh_backup --src_path="/etc/matrix-$app"
 #=================================================
 
 ynh_backup --src_path="/etc/default/matrix-$app"
-ynh_backup --src_path="/etc/systemd/system/matrix-$app.service"
+ynh_backup --src_path="/etc/systemd/system/$app.service"
 ynh_backup --src_path="/etc/default/coturn-$app"
-ynh_backup --src_path="/etc/systemd/system/coturn-$app.service"
+ynh_backup --src_path="/etc/systemd/system/$app-coturn.service"
 
 #=================================================
 # BACKUP SYNAPSE DATA

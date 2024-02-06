@@ -17,14 +17,14 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 # Remove a service from the admin panel, added by `yunohost service add`
-if yunohost service status matrix-$app >/dev/null 2>&1
+if yunohost service status $app >/dev/null 2>&1
 then
-	yunohost service remove matrix-$app
+	yunohost service remove $app
 fi
 
-if yunohost service status coturn-$app >/dev/null 2>&1
+if yunohost service status $app-coturn >/dev/null 2>&1
 then
-	yunohost service remove coturn-$app
+	yunohost service remove $app-coturn
 fi
 
 #=================================================
@@ -32,8 +32,8 @@ fi
 #=================================================
 ynh_script_progression --message="Stopping and removing the systemd service" --weight=2
 
-ynh_remove_systemd_config --service=matrix-$app
-ynh_remove_systemd_config --service=coturn-$app
+ynh_remove_systemd_config --service=$app
+ynh_remove_systemd_config --service=$app-coturn
 
 #=================================================
 # REMOVE APP MAIN DIR

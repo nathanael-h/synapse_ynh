@@ -201,10 +201,10 @@ ynh_script_progression --message="Configuring a systemd service..." --weight=2
 
 # Create systemd service for synapse and turnserver
 cp ../conf/default_matrix-synapse /etc/default/matrix-$app
-ynh_add_systemd_config --service=matrix-$app --template=matrix-synapse.service
+ynh_add_systemd_config --service=matrix-$app --template=synapse.service
 
 cp ../conf/default_coturn /etc/default/coturn-$app
-ynh_add_systemd_config --service=coturn-$app --template=coturn-synapse.service
+ynh_add_systemd_config --service=$app-coturn --template=synapse-coturn.service
 
 #=================================================
 # NGINX CONFIGURATION
@@ -287,16 +287,16 @@ set_permissions
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $port_synapse_tls
-yunohost service add coturn-$app --needs_exposed_ports $port_turnserver_tls
+yunohost service add $app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $port_synapse_tls
+yunohost service add $app-coturn --needs_exposed_ports $port_turnserver_tls
 
 #=================================================
 # RELOAD SERVICES
 #=================================================
 ynh_script_progression --message="Restarting Synapse services..." --weight=11
 
-ynh_systemd_action --service_name=coturn-$app.service --action=restart
-ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $port_synapse_tls" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
+ynh_systemd_action --service_name=$app-coturn.service --action=restart
+ynh_systemd_action --service_name=$app.service --action=restart --line_match="Synapse now listening on TCP port $port_synapse_tls" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
 
 #=================================================
 # SETUP FAIL2BAN

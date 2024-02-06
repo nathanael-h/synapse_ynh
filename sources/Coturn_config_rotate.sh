@@ -27,7 +27,7 @@ setfacl -R -m user:turnserver:rX  /etc/matrix-$app_instance
 
 if [ "$old_config_line" != "$new_config_line" ]
 then
-    systemctl restart coturn-$app_instance.service
+    systemctl restart $app_instance-coturn.service
 fi
 
 exit 0

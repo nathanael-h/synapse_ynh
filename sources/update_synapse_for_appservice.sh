@@ -21,7 +21,7 @@ chown matrix-$app /etc/matrix-$app/app-service/*
 chmod 600 $service_config_file
 chmod 600 /etc/matrix-$app/app-service/*
 
-systemctl restart matrix-$app
+systemctl restart $app.service
 
 if [ $? -eq 0 ]; then
     rm /tmp/app_service_backup.yaml
