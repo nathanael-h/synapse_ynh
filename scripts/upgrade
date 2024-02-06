@@ -213,13 +213,6 @@ then
     ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
 fi
 
-if [ -z $synapse_user_app_pwd ]; then
-    synapse_user_app_pwd="$(ynh_string_random --length=30)"
-    ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
-    # The format to create an user account varies depending on the version of YunoHost currently installed.
-    yunohost user create $app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
-fi
-
 #=================================================
 # MIGRATION 7 : STANDARDIZE SYSTEMD UNIT
 #=================================================

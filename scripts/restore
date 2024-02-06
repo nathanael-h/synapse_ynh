@@ -19,10 +19,9 @@ ynh_script_progression --message="Loading settings..."
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
+ynh_script_progression --message='Configuring system groups'
 
 # Create the dedicated user (if not existing)
-yunohost user create $app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
 adduser $app ssl-cert
 adduser turnserver ssl-cert
 
