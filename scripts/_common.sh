@@ -109,6 +109,7 @@ configure_synapse() {
     sed -i "s|_AUTO_JOIN_ROOMS_SED_PARAM_|$auto_join_rooms_sed_param|g" /etc/matrix-$app/homeserver.yaml
     sed -i "s|_REGISTRATION_REQUIRE_3PID_SED_PARAM_|$registration_require_3pid_sed_param|g" /etc/matrix-$app/homeserver.yaml
     sed -i "s|_ALLOWD_LOCAL_3PIDS_SED_PARAM_|$allowd_local_3pids_sed_param|g" /etc/matrix-$app/homeserver.yaml
+    ynh_store_file_checksum --file=/etc/matrix-$app/homeserver.yaml
 
     ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 }
