@@ -8,7 +8,7 @@ services = ["__APP__"]
     name = "Experience for new Users"
 
         [main.welcome.enable_registration]
-        ask = "Enable Registration for new users."
+        ask = "Enable Registration for new users"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -24,26 +24,26 @@ services = ["__APP__"]
         # visible = "! enable_registration"
 
         [main.welcome.registrations_require_3pid]
-        ask = "Registration requires all following 3PID personal identifier."
+        ask = "Registration requires all following 3PID personal identifier"
         type = "select"
         choices = ["none","email", "msisdn", "email&msisdn"]
         help = "! Warning msisdn (Phone number) registration require a third party service which send confirmation token by SMS.\nDo not select any option including msisdn if you don't know what to do. And don't user email nor msisdn if you don't understand privacy flow\nDefaults to: 'none'."
         visible = "enable_registration"
 
         [main.welcome.allowed_local_3pids_email]
-        ask = "Register only with given email formats."
+        ask = "Register only with given email formats"
         type = "tags"
         help = '( e.g. ^[^@]+@matrix\\\\.org$ ) Note that \\\ will write \\ as suggested in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email" || registrations_require_3pid == "email&msisdn")'
 
         [main.welcome.allowed_local_3pids_msisdn]
-        ask = "Register only with given phone number formats."
+        ask = "Register only with given phone number formats"
         type = "tags"
         help = '( e.g. \\\\+33 ) Note that \\\ will write \\ as suggested in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.disable_msisdn_registration]
-        ask = "Disable asking Phone Number in Registration flow."
+        ask = "Disable asking Phone Number in Registration flow"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -51,25 +51,25 @@ services = ["__APP__"]
         visible = "enable_registration"
 
         [main.welcome.account_threepid_delegates_msisdn]
-        ask = "Specify a third party server to send confirmation code by SMS."
+        ask = "Specify a third party server to send confirmation code by SMS"
         type = "string"
         help = "That should be an URL with port or API."
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.auto_join_rooms]
-        ask = "Auto Join new Users in following Rooms:"
+        ask = "Auto Join new Users in following Rooms"
         type = "tags"
         help = "( e.g. #example:example.com ) Users who register on this homeserver will automatically be joined to these rooms. If the room already exists, the join rule must be set to 'public'. See also next setting."
 
         [main.welcome.autocreate_auto_join_rooms]
-        ask = "Auto-Create room for Auto Join if not existing?"
+        ask = "Auto-Create room for Auto Join if not existing"
         type = "boolean"
         yes = "true"
         no = "false"
         help = "Setting to false means that if the rooms are not manually created, users cannot be auto-joined. Auto-created rooms will be public and federated by default, this can be customised in CLI with the settings auto_join_*."
 
         [main.welcome.notif_for_new_users]
-        ask = "Enable email notifications for new users?"
+        ask = "Enable email notifications for new users"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -94,14 +94,14 @@ services = ["__APP__"]
         help = "Note that encryption can always be turned on manually, even after creation."
 
         [main.privacy.allow_public_rooms_over_federation]
-        ask = "Access Public Rooms Directory over Federation?"
+        ask = "Access Public Rooms Directory over Federation"
         type = "boolean"
         yes = "true"
         no = "false"
         help = "Disabled by default. If disabled, users on other homeserver will not be able to look for a public room on your homeserver. They will have to type the ID of the room to join."
 
         [main.privacy.push_include_content]
-        ask = "Disable content sharing inside push notification."
+        ask = "Disable content sharing inside push notification"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -111,26 +111,26 @@ services = ["__APP__"]
     name = "User Experience"
 
         [main.experience.web_client_location]
-        ask = "Element instance your HomeServer should redirect to."
+        ask = "Element instance your HomeServer should redirect to"
         type = "url"
         help = "URL to the web client which / will redirect to."
 
         [main.experience.enable_group_creation]
-        ask = "Allow non-server-admin Users to create Spaces?"
+        ask = "Allow non-server-admin Users to create Spaces"
         type = "boolean"
         yes = "true"
         no = "false"
         help = "Disabled by default: only server admins can create Spaces"
 
         [main.experience.enable_notifs]
-        ask = "Enable sending emails for messages the user missed?"
+        ask = "Enable sending emails for messages the user missed"
         type = "boolean"
         yes = "true"
         no = "false"
         help = "Defaults to 'false'."
 
         [main.experience.client_base_url]
-        ask = "URL for client links within the email notifications."
+        ask = "URL for client links within the email notifications"
         type = "url"
         help = "Used to be called 'riot_base_url', still supported"
         visible = "enable_notifs"
@@ -143,7 +143,7 @@ services = ["__APP__"]
     name = "Manage Media growth and clean-up"
 
         [resources.media.max_upload_size]
-        ask = "Largest allowed media upload size in bytes."
+        ask = "Largest allowed media upload size in bytes"
         type = "string"
         help = "Defaults to: '10M' . Format : <value><[GMK]?>"
 
@@ -174,19 +174,19 @@ services = ["matrix-__APP__"]
     name = "Experience for Guests / Anonymous"
 
         [advanced.guests.invite_client_location]
-        ask = "Web client location to direct users to during an invite."
+        ask = "Web client location to direct users to during an invite"
         type = "url"
         help = "This is passed to the identity server as the org.matrix.web_client_location key. Defaults to unset, giving no guidance to the identity server."
 
         [advanced.guests.allow_guest_access]
-        ask = "Allow Users to Register as Guests?"
+        ask = "Allow Users to Register as Guests"
         type = "boolean"
         yes = "true"
         no = "false"
         help = "Guests can participate on this server in rooms with guest access enabled, without a password/email/etc."
 
         [advanced.guests.auto_join_rooms_for_guests]
-        ask = "Enable Auto Join Room for Guests?"
+        ask = "Enable Auto Join Room for Guests"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -197,19 +197,19 @@ services = ["matrix-__APP__"]
     name = "Data Privacy"
 
             [advanced.privacy.enable_3pid_lookup]
-            ask = "Allow discovering friends with phone number or email?"
+            ask = "Allow discovering friends with phone number or email"
             type = "boolean"
             yes = "true"
             no = "false"
             help = "Enable 3PIDs lookup requests to identity servers from this server. See Settings->General->Discovery in Element."
 
             [advanced.privacy.default_identity_server]
-            ask = "Identity server suggested to clients?"
+            ask = "Identity server suggested to clients"
             type = "url"
             help = "Identity server allows to discover, be discovered and invite people you know with phone number or email. If not set, users will probably chose centralized vector.im. See Settings->General->Discovery in Element."
 
             [advanced.privacy.allow_public_rooms_without_auth]
-            ask = "Access Public Rooms Directory without authentification?"
+            ask = "Access Public Rooms Directory without authentification"
             type = "boolean"
             yes = "true"
             no = "false"
@@ -219,12 +219,12 @@ services = ["matrix-__APP__"]
     name = "Account Registration"
 
             [advanced.registration.registration_shared_secret]
-            ask = "Shared Secret for Registration."
+            ask = "Shared Secret for Registration"
             type = "string"
             help = "Allows registration of standard or admin accounts, even if Registration disabled."
 
             [advanced.registration.turn_allow_guests]
-            ask = "Should guests be allowed to use the TURN server?"
+            ask = "Should guests be allowed to use the TURN server"
             type = "boolean"
             yes = "true"
             no = "false"
