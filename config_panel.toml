@@ -26,8 +26,8 @@ services = ["__APP__"]
         [main.welcome.registrations_require_3pid]
         ask = "Registration requires all following 3PID personal identifier"
         type = "select"
-        choices = ["none","email", "msisdn", "email&msisdn"]
-        help = "! Warning msisdn (Phone number) registration require a third party service which send confirmation token by SMS.\nDo not select any option including msisdn if you don't know what to do. And don't user email nor msisdn if you don't understand privacy flow\nDefaults to: 'none'."
+        choices = ["email", "msisdn", "email&msisdn"]
+        help = "! Warning msisdn (Phone number) registration require a third party service which send confirmation token by SMS.\nDo not select msisdn if you don't know what to do. And don't select user msisdn if you don't understand privacy flow\nDefaults to: 'email'."
         visible = "enable_registration"
 
         [main.welcome.allowed_local_3pids_email]
