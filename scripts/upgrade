@@ -17,17 +17,6 @@ source /usr/share/yunohost/helpers
 upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
-
-# Following the discussion here https://github.com/YunoHost-Apps/synapse_ynh/pull/51 we decided to remove definitely the support of the old package migration.
-if [ -z "$synapse_old_version" ]
-then
-    ynh_die --message="Update from this synapse version is not available. You need to remove this package and reinstall the new package version."
-fi
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # MIGRATION 5 : Manage old settings
