@@ -462,7 +462,7 @@ if yunohost --output-as plain domain list | grep -q "^$server_name"'$'; then
         ynh_""permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
                               --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
                               --auth_header=false --protected=true
-    else yunohost --output-as plain domain list | grep -q "^$server_name"'$'; then
+    else yunohost --output-as plain domain list | grep -q "^$server_name"'$'
         ynh_""permission_url --permission=server_client_infos --url=$server_name/.well-known/matrix \
                           --auth_header=false
         ynh_""permission_update --permission=server_client_infos --label="Server info for clients. (well-known)" --show_tile=false \
