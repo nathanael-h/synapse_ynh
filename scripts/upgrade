@@ -209,20 +209,21 @@ fi
 # MIGRATION 7 : STANDARDIZE SYSTEMD UNIT
 #=================================================
 
-if [ ! -e /etc/systemd/system/matrix-$app.service ]
+if [ -e /etc/systemd/system/matrix-$app.service ]
 then
     ynh_script_progression --message="Migrating systemd unit to standard name..."
 
-    systemctl stop matrix-$app.service
-    systemctl stop synapse-coturn.service
+    systemctl stop matrix-$app.service || true
+    systemctl stop synapse-coturn.service || true
 
-    yunohost service remove matrix-$app
-    yunohost service remove coturn-$app
+    yunohost service remove matrix-$app || true
+    yunohost service remove coturn-$app || true
 
     ynh_secure_remove --file=/etc/systemd/system/matrix-$app.service
     ynh_secure_remove --file=/etc/systemd/system/coturn-$app.service
 
     touch /etc/systemd/system/$app.service
+    systemctl daemon-reload || true
 fi
 
 #=================================================
