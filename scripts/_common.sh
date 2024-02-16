@@ -133,6 +133,7 @@ configure_coturn() {
 
     ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
     sed -i "s|_TURN_EXTERNAL_IP_|$turn_external_ip|g" /etc/matrix-$app/coturn.conf
+    ynh_store_file_checksum --file=/etc/matrix-$app/coturn.conf
 }
 
 configure_nginx() {
