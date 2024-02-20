@@ -2041,7 +2041,7 @@ cas_config:
   # Uncomment the following to enable authorization against a CAS server.
   # Defaults to false.
   #
-  enabled: __SSO_ENABLED__
+  enabled: true
 
   # The URL of the CAS authorization endpoint.
   #
