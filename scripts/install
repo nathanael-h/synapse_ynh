@@ -254,6 +254,7 @@ ynh_use_logrotate --logfile "/var/log/matrix-$app"
 
 ynh_add_config --template="../sources/Coturn_config_rotate.sh" --destination="$code_dir/Coturn_config_rotate.sh"
 ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destination="$code_dir/update_synapse_for_appservice.sh"
+ynh_add_config --template=../sources/set_admin_user.sh --destination=$code_dir/set_admin_user.sh
 
 #=================================================
 # GENERIC FINALIZATION
