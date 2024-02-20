@@ -211,10 +211,10 @@ fi
 
 if [ -e /etc/systemd/system/matrix-$app.service ]
 then
-    ynh_script_progression --message="Migrating systemd unit to standard name..."
+    ynh_script_progression --message='Migrating systemd unit to standard name...'
 
     systemctl stop matrix-$app.service || true
-    systemctl stop synapse-coturn.service || true
+    systemctl stop coturn-$app.service || true
 
     yunohost service remove matrix-$app || true
     yunohost service remove coturn-$app || true
@@ -233,6 +233,8 @@ fi
 # We stop the service
 ynh_systemd_action --service_name=$app.service --action=stop
 
+ynh_script_progression --message='Managing migrations...'
+
 #=================================================
 # MIGRATION 6 : Migrate data directory
 #=================================================
@@ -246,17 +248,13 @@ if [ -e "/var/lib/matrix-$app" ]; then
     fi
     mv "/var/lib/matrix-$app" "$data_path"
 fi
-if ! grep -q "$code_dir" /etc/passwd; then
-    # matrix-synapse:x:994:994::/var/lib/matrix-synapse:/usr/sbin/nologin
-    sed --in-place -r "s@matrix-$app\:x\:([[:digit:]]+\:[[:digit:]]+)\:\:/.*/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:\1\:\:$code_dir\:/usr/sbin/nologin@g" /etc/passwd
-fi
 
 #=================================================
 # MIGRATION 3 : USE STANDARD ACCESS FOR CERTIFCATE
 #=================================================
 
 # Fix issue about certificates access
-if [ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-$app" /etc/group) ]
+if [ ! $(grep "ssl-cert:x:[0-9]*:.*$app" /etc/group) ]
 then
     ynh_script_progression --message="Use standard access for certificate..." --weight=1
 
@@ -303,12 +301,74 @@ then
     ynh_use_logrotate --logfile /var/log/matrix-$app --nonappend
 fi
 
+#=================================================
+# MIGRATION 8 : Migrate database to managed database (Migrate db name from matrix_$app to $app)
+#=================================================
+
+if ynh_psql_execute_as_root --sql='\list' | grep matrix_$app; then
+    ynh_psql_remove_db --db_user="user_wich_must_dont_exist_and_keep_current_user" --db_name=$db_name
+    ynh_psql_execute_as_root --sql="ALTER DATABASE matrix_$app RENAME TO $db_name;"
+    ynh_psql_execute_as_root --database=$db_name --sql="REASSIGN OWNED BY matrix_$app TO $db_user;"
+    ynh_psql_execute_as_root --sql="UPDATE pg_database SET datcollate='C', datctype='C' WHERE datname='$db_name';"
+    ynh_psql_execute_as_root --sql="DROP USER matrix_$app;"
+fi
+
+#=================================================
+# MIGRATION 9 : migrate data path (from matrix-$app to $app)
+#=================================================
+
+if [ -e /home/yunohost.app/matrix-$app ]; then
+    mv -t $data_dir /home/yunohost.app/matrix-$app/*
+    ynh_secure_remove --file=/home/yunohost.app/matrix-$app
+fi
+
+#=================================================
+# MIGRATION 10 : leave port managed by yunohost
+#=================================================
+
+# TODO check on v2 how it works
+
+closeport() {
+    local port=$1
+    if yunohost firewall list | grep -q "\- $port$"
+    then
+        ynh_script_progression --message="Closing port $port"
+        ynh_exec_warn_less yunohost firewall disallow Both $port
+    fi
+}
+
+# closeport $synapse_tls_port
+# closeport $turnserver_tls_port
+# closeport $turnserver_alt_tls_port
+
+#=================================================
+# MIGRATION 11 : make this app using full domain
+#=================================================
+
+ynh_app_setting_set --app=$app --key=path --value=/
+
+if yunohost app map -r --output-as json | jq '."'$domain'" | .[] | .id' | grep -v "$app" -q; then
+    ynh_print_warn 'An other app is installed on this domain. Now synapse require to be alone on the domain.'
+    ynh_print_warn 'To solve this you can:'
+    ynh_print_warn "- Remove or move all other app which use '$domain'"
+    ynh_print_warn '- Change the url of synapse with the yunohost change-url tool. Note that you will keep the same "server_name" so your users will keep the same username.'
+fi
+
+#=================================================
+# MIGRATION 12 : update system user and drop yunohost user
+#=================================================
+
+if grep -q matrix-$app /etc/passwd; then
+    ynh_system_user_delete --username=matrix-$app
+    yunohost user delete $app || true
+    ynh_system_user_create --username=$app --home_dir=$code_dir
+    adduser $app ssl-cert
+fi
+
 ######################################### WARNING ################################
 
-# TODO manage of migration of data path
-# TODO manage of migration of db name
 # TODO delete legacy user matrix-synapse
-# TODO maybe need to close port to leave managed port to manage this
+
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE

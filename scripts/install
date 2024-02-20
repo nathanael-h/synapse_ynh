@@ -97,6 +97,17 @@ ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_loo
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
+# Check datadir empty
+#=================================================
+
+if [ -n "$(ls -A $data_dir)" ]; then
+    old_data_dir_path="${data_dir}_$(date '+%Y%m%d.%H%M%S')"
+    ynh_print_warn "Data directory was not empty. Data was moved to $old_data_dir_path"
+    mkdir -p $old_data_dir_path
+    mv -t "$old_data_dir_path" "$data_dir"/*
+fi
+
+#=================================================
 # CREATE A DH FILE
 #=================================================
 ynh_script_progression --message="Creating a dh file..." --weight=3
