@@ -323,25 +323,6 @@ if [ -e /home/yunohost.app/matrix-$app ]; then
 fi
 
 #=================================================
-# MIGRATION 10 : leave port managed by yunohost
-#=================================================
-
-# TODO check on v2 how it works
-
-closeport() {
-    local port=$1
-    if yunohost firewall list | grep -q "\- $port$"
-    then
-        ynh_script_progression --message="Closing port $port"
-        ynh_exec_warn_less yunohost firewall disallow Both $port
-    fi
-}
-
-# closeport $synapse_tls_port
-# closeport $turnserver_tls_port
-# closeport $turnserver_alt_tls_port
-
-#=================================================
 # MIGRATION 11 : make this app using full domain
 #=================================================
 
@@ -364,11 +345,6 @@ if grep -q matrix-$app /etc/passwd; then
     ynh_system_user_create --username=$app --home_dir=$code_dir
     adduser $app ssl-cert
 fi
-
-######################################### WARNING ################################
-
-# TODO delete legacy user matrix-synapse
-
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
