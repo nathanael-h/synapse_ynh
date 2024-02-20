@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 app=__APP__
 service_config_file=/etc/matrix-$app/conf.d/app_service.yaml
 

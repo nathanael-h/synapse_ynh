@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 app_instance=__APP__
 
 source /usr/share/yunohost/helpers
