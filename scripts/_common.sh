@@ -42,21 +42,11 @@ install_sources() {
         test -e $code_dir/bin/python3 || python3 -m venv $code_dir
 
         # Install synapse in virtualenv
+        local pip3=$code_dir/bin/pip3
 
-        # We set all necessary environement variable to create a python virtualenvironnement.
-        u_arg='u'
-        set +$u_arg;
-        source $code_dir/bin/activate
-        set -$u_arg;
-
-        pip3 install --upgrade setuptools wheel pip
-        pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        pip3 install --upgrade -r $YNH_APP_BASEDIR/conf/requirement_$(lsb_release --codename --short).txt
-
-        # This function was defined when we called "source $code_dir/bin/activate". With this function we undo what "$code_dir/bin/activate" does
-        set +$u_arg;
-        deactivate
-        set -$u_arg;
+        $pip3 install --upgrade setuptools wheel pip
+        $pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
+        $pip3 install --upgrade -r $YNH_APP_BASEDIR/conf/requirement_$(lsb_release --codename --short).txt
     fi
 
     # Apply patch for LDAP auth if needed

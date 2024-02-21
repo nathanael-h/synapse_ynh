@@ -172,19 +172,8 @@ chown $app:$app -R $install_dir
 
 ynh_script_progression --message="Creating Synapse config..." --weight=3
 
-# Go in virtualenvironnement
-u_arg='u'
-set +$u_arg;
-source $code_dir/bin/activate
-set -$u_arg;
-
 # Generate config
-python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --server-name $server_name --report-stats=no -c homeserver.yml
-
-# This function was defined when we called "source $code_dir/bin/activate". With this function we undo what "$code_dir/bin/activate" does
-set +$u_arg;
-deactivate
-set -$u_arg;
+$code_dir/bin/python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --server-name $server_name --report-stats=no -c homeserver.yml
 
 # Get random values from config
 registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
