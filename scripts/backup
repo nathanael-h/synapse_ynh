@@ -49,7 +49,7 @@ fi
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
 
-ynh_psql_dump_db --database="$synapse_db_name" > ${YNH_CWD}/dump.sql
+ynh_psql_dump_db --database="$db_name" > ${YNH_CWD}/dump.sql
 
 #=================================================
 # BACKUP FAIL2BAN CONFIGURATION
@@ -79,7 +79,7 @@ ynh_backup --src_path="/etc/systemd/system/$app-coturn.service"
 # BACKUP SYNAPSE DATA
 #=================================================
 
-ynh_backup --src_path="$data_path" --is_big=1
+ynh_backup --src_path="$data_dir" --is_big=1
 
 #=================================================
 # BACKUP SYNAPSE LOG

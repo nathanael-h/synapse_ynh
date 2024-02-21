@@ -240,13 +240,13 @@ ynh_script_progression --message='Managing migrations...'
 #=================================================
 
 if [ -e "/var/lib/matrix-$app" ]; then
-    ynh_script_progression --message="Moving data directory to $data_path..." --weight=1
-    if [ -e "$data_path" ]; then
-        old_data_dir_path="$data_path$(date '+%Y%m%d.%H%M%S')"
+    ynh_script_progression --message="Moving data directory to $data_dir..." --weight=1
+    if [ -e "$data_dir" ]; then
+        old_data_dir_path="$data_dir$(date '+%Y%m%d.%H%M%S')"
         ynh_print_warn "A data directory already exist. Data was renamed to $old_data_dir_path"
-        mv "$data_path" "$old_data_dir_path"
+        mv "$data_dir" "$old_data_dir_path"
     fi
-    mv "/var/lib/matrix-$app" "$data_path"
+    mv "/var/lib/matrix-$app" "$data_dir"
 fi
 
 #=================================================

@@ -58,7 +58,7 @@ ynh_systemd_action --action=restart --service_name=fail2ban
 #=================================================
 ynh_script_progression --message="Restoring the PostgreSQL database..." --weight=13
 
-ynh_psql_execute_file_as_root --file="${YNH_CWD}/dump.sql" --database="$synapse_db_name"
+ynh_psql_execute_file_as_root --file="${YNH_CWD}/dump.sql" --database="$db_name"
 
 #=================================================
 # RESTORE SYSTEMD
