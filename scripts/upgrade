@@ -311,6 +311,8 @@ if ynh_psql_execute_as_root --sql='\list' | grep matrix_$app; then
     ynh_psql_execute_as_root --database=$db_name --sql="REASSIGN OWNED BY matrix_$app TO $db_user;"
     ynh_psql_execute_as_root --sql="UPDATE pg_database SET datcollate='C', datctype='C' WHERE datname='$db_name';"
     ynh_psql_execute_as_root --sql="DROP USER matrix_$app;"
+    # for unknown reason we need to set again the password for synapse user. Without this synapse can't authenticate to postgresql
+    ynh_psql_execute_as_root --sql="ALTER USER $db_user WITH ENCRYPTED PASSWORD '$db_pwd';"
 fi
 
 #=================================================
@@ -328,7 +330,7 @@ fi
 
 ynh_app_setting_set --app=$app --key=path --value=/
 
-if yunohost app map -r --output-as json | jq '."'$domain'" | .[] | .id' | grep -v "$app" -q; then
+if yunohost app map -r --output-as json | jq -r '."'$domain'" | select( . != null ) | .[] | .id' | grep -v "$app" -q; then
     ynh_print_warn 'An other app is installed on this domain. Now synapse require to be alone on the domain.'
     ynh_print_warn 'To solve this you can:'
     ynh_print_warn "- Remove or move all other app which use '$domain'"
@@ -340,6 +342,9 @@ fi
 #=================================================
 
 if grep -q "^matrix-$app" /etc/passwd; then
+    # Must stop php before remove user as user is used by php
+    systemctl stop php$YNH_PHP_VERSION-fpm.service
+
     ynh_system_user_delete --username=matrix-$app
     yunohost user delete $app || true
     ynh_system_user_create --username=$app --home_dir=$code_dir
