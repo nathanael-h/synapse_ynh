@@ -4,8 +4,6 @@ test_format = 1.0
 
 [default]
 
-    test_upgrade_from.0a485e0d6bcd14392b9203b3b27e7e1a7ba21d19.name = "Before permission implementation (branch old_version_for_CI_4)"
-
-    test_upgrade_from.6af39e6e086e70e2063eb8f63c48a1e4a597300d.name = "Before app user creation"
+    test_upgrade_from.b3bacec606f25c7f69de44da9e9e7eac405810c7.name = "Post app user creation"
 
     test_upgrade_from.10bff828970ee034812a1114bedb3e7740517ad2.name = "Before packaging v2"
