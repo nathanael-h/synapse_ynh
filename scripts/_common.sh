@@ -1,8 +1,5 @@
-
 python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
-main_domain=$(yunohost domain main-domain --output-as plain)
 code_dir="/opt/yunohost/matrix-$app"
-base_api_url="/_matrix"
 
 install_sources() {
     # Install/upgrade synapse in virtualenv
