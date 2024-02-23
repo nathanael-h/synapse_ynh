@@ -108,7 +108,7 @@ then
     disable_msisdn_registration="true"
     ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
 fi
-if [ -z "${registrations_require_3pid:-}" ]
+if [ -z "${registrations_require_3pid:-}" ] || [ "${registrations_require_3pid}" == none ]
 then
     registrations_require_3pid=email
     ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
