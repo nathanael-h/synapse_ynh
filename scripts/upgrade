@@ -460,7 +460,6 @@ yunohost service add $app-coturn --needs_exposed_ports $port_turnserver_tls --de
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=3
 
 # Create systemd service for synapse and turnserver
-cp ../conf/default_matrix-synapse /etc/default/matrix-$app
 ynh_add_systemd_config --service=$app --template=synapse.service
 
 cp ../conf/default_coturn /etc/default/coturn-$app

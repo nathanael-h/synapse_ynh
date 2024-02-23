@@ -70,7 +70,6 @@ ynh_backup --src_path="/etc/matrix-$app"
 # BACKUP SYSTEMD
 #=================================================
 
-ynh_backup --src_path="/etc/default/matrix-$app"
 ynh_backup --src_path="/etc/systemd/system/$app.service"
 ynh_backup --src_path="/etc/default/coturn-$app"
 ynh_backup --src_path="/etc/systemd/system/$app-coturn.service"
