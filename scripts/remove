@@ -17,15 +17,8 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 # Remove a service from the admin panel, added by `yunohost service add`
-if yunohost service status $app >/dev/null 2>&1
-then
-	yunohost service remove $app
-fi
-
-if yunohost service status $app-coturn >/dev/null 2>&1
-then
-	yunohost service remove $app-coturn
-fi
+yunohost service remove $app
+yunohost service remove $app-coturn
 
 #=================================================
 # STOP AND REMOVE SERVICE
