@@ -61,12 +61,12 @@ ram.runtime = "200M"
     default = "all_users"
 
 [resources]
-    [resources.sources.prebuilt_bookworm]
+    [resources.sources.synapse_prebuiltprebuilt_bookworm]
     prefetch = false
     armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.101.0/matrix-synapse_1.101.0-bookworm-bin1_armv7l.tar.gz"
     armhf.sha256 = "26b1e23d04bd23b924ea343eeff0cbddc33dff54de73034ed51c10872a0abf6f"
 
-    [resources.sources.prebuilt_bullseye]
+    [resources.sources.synapse_prebuiltprebuilt_bullseye]
     prefetch = false
     armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.101.0/matrix-synapse_1.101.0-bullseye-bin1_armv7l.tar.gz"
     armhf.sha256 = "87046651724467fe504735a30debf518925b2995e2e2c8d34285c60bcb567a59"
