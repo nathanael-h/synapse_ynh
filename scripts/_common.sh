@@ -25,7 +25,7 @@ install_sources() {
         ynh_secure_remove --file=$code_dir/include
         ynh_secure_remove --file=$code_dir/share
 
-        ynh_setup_source --dest_dir=$code_dir/ --source_id="armv7_$(lsb_release --codename --short)"
+        ynh_setup_source --dest_dir=$code_dir/ --source_id="synapse_prebuilt_armv7_$(lsb_release --codename --short)"
 
         # Fix multi-instance support
         for f in $(ls $code_dir/bin); do
