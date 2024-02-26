@@ -1181,7 +1181,7 @@ oembed:
 
 # The public URIs of the TURN server to give to clients
 #
-turn_uris: [ "turn:__DOMAIN__:__PORT_TURNSERVER_TLS__?transport=udp", "turn:__DOMAIN__:__PORT_TURNSERVER_TLS__?transport=tcp" ]
+__TURN_SERVER_CONFIG__
 
 # The shared secret used to compute passwords for the TURN server
 #
@@ -1195,7 +1195,7 @@ turn_shared_secret: "__TURNSERVER_PWD__"
 
 # How long generated TURN credentials last
 #
-turn_user_lifetime: 1h
+turn_user_lifetime: 12h
 
 # Whether guests should be allowed to use the TURN server.
 # This defaults to True, otherwise VoIP will be unreliable for guests.

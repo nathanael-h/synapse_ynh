@@ -199,6 +199,11 @@ then
     push_include_content="true"
     ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
 fi
+if [ -z "${enable_dtls_for_audio_video_turn_call:-}" ]
+then
+    enable_dtls_for_audio_video_turn_call="true"
+    ynh_app_setting_set --app=$app --key=enable_dtls_for_audio_video_turn_call --value=$enable_dtls_for_audio_video_turn_call
+fi
 
 #=================================================
 # MIGRATION 7 : STANDARDIZE SYSTEMD UNIT

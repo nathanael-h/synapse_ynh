@@ -95,6 +95,12 @@ configure_synapse() {
             done <<< "${allowed_local_3pids_msisdn},"
         fi
     fi
+    local turn_server_config=""
+    if $enable_dtls_for_audio_video_turn_call; then
+        turn_server_config='turn_uris: [ "stuns:'$domain:$port_turnserver_tls'?transport=dtls", "stuns:'$domain:$port_turnserver_tls'?transport=tls", "turns:'$domain:$port_turnserver_tls'?transport=dtls", "turns:'$domain:$port_turnserver_tls'?transport=tls" ]'
+    else
+        turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'?transport=udp", "turn:'$domain:$port_turnserver_tls'?transport=tcp" ]'
+    fi
 
     ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
     sed -i "s|_DOMAIN_WHITELIST_CLIENT_|$domain_whitelist_client|g" /etc/matrix-$app/homeserver.yaml
