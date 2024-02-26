@@ -85,20 +85,20 @@ ram.runtime = "200M"
 
     [resources.permissions]
     main.url = "/"
-    main.additional_urls = ["__DOMAIN__/_matrix/cas_server.php/login"]
+    main.additional_urls = ["/_matrix/cas_server.php/login"]
     main.label = "Server SSO"
     main.auth_header = true
     main.show_tile=false
     main.protected = true
 
-    server_api.url = "__DOMAIN__/_matrix"
+    server_api.url = "/_matrix"
     server_api.label = "Server access for client apps"
     server_api.allowed = "visitors"
     server_api.auth_header = false
     server_api.show_tile = false
     server_api.protected = true
 
-    admin_api.url = "__DOMAIN__/_synapse"
+    admin_api.url = "/_synapse"
     admin_api.label = "Admin API"
     admin_api.allowed = "visitors"
     admin_api.auth_header = false
