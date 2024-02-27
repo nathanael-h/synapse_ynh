@@ -9,15 +9,6 @@ source ./experimental_helper.sh
 source ./_common.sh
 source /usr/share/yunohost/helpers
 
-path=$new_path
-domain=$new_domain
-
-# Check if the new path stay /_matrix if not exit
-if [[ $path != "/_matrix" ]]
-then
-    ynh_die --message "You can't use an other path than '/_matrix'. You can only change the domain."
-fi
-
 # We stop the service
 ynh_systemd_action --service_name=$app.service.service --action=stop
 
