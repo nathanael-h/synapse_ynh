@@ -497,7 +497,7 @@ fi
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-ynh_script_progression --message="Protecting directories..." --weight=3
+ynh_script_progression --message="Protecting directories... (note that it could take a long time depending of your install size)" --weight=3
 set_permissions
 
 #=================================================
