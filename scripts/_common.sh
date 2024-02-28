@@ -41,8 +41,7 @@ install_sources() {
         # Install synapse in virtualenv
         local pip3=$code_dir/bin/pip3
 
-        $pip3 install --upgrade setuptools wheel pip
-        $pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
+        $pip3 install --upgrade setuptools wheel pip cffi
         $pip3 install --upgrade -r $YNH_APP_BASEDIR/conf/requirement_$(lsb_release --codename --short).txt
     fi
 
