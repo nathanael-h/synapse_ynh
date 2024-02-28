@@ -333,8 +333,8 @@ ynh_app_setting_set --app=$app --key=path --value=/
 if yunohost app map -r --output-as json | jq -r '."'$domain'" | select( . != null ) | .[] | .id' | grep -v "$app" -q; then
     ynh_print_warn 'An other app is installed on this domain. Now synapse require to be alone on the domain.'
     ynh_print_warn 'To solve this you can:'
-    ynh_print_warn "- Remove or move all other app which use '$domain'"
-    ynh_print_warn '- Change the url of synapse with the yunohost change-url tool. Note that you will keep the same "server_name" so your users will keep the same username.'
+    ynh_print_warn " - Remove or move all other app which use '$domain'"
+    ynh_print_warn ' - Change the url of synapse with the yunohost change-url tool. Note that you will keep the same "server_name" so your users will keep the same username.'
 fi
 
 #=================================================
