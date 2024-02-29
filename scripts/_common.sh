@@ -62,7 +62,10 @@ configure_synapse() {
     local macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
     local auto_join_rooms_sed_param=""
     if [ -n "$auto_join_rooms" ]; then
-        auto_join_rooms_sed_param='auto_join_rooms:\n  - "'$auto_join_rooms'"'
+        auto_join_rooms_sed_param+='auto_join_rooms:'
+        while read -d, room; do
+            auto_join_rooms_sed_param+='\n  - "'$room'"'
+        done <<< "${auto_join_rooms},"
     fi
     local registration_require_3pid_sed_param=""
     case ${registrations_require_3pid} in
@@ -82,10 +85,14 @@ configure_synapse() {
         allowd_local_3pids_sed_param="allowed_local_3pids:"
 
         if [ -n "$allowed_local_3pids_email" ]; then
-            allowd_local_3pids_sed_param+="\n  - medium: email\n    pattern: '$allowed_local_3pids_email'"
+            while read -d, pattern ; do
+                allowd_local_3pids_sed_param+="\n  - medium: email\n    pattern: '$pattern'"
+            done <<< "${allowed_local_3pids_email},"
         fi
         if [ -n "$allowed_local_3pids_msisdn" ]; then
-            allowd_local_3pids_sed_param+="\n  - medium: msisdn\n    pattern: '$allowed_local_3pids_msisdn'"
+            while read -d, pattern ; do
+                allowd_local_3pids_sed_param+="\n  - medium: msisdn\n    pattern: '$pattern'"
+            done <<< "${allowed_local_3pids_msisdn},"
         fi
     fi
 
