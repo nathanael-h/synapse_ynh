@@ -148,11 +148,13 @@ set_permissions() {
     chmod 700 $code_dir/update_synapse_for_appservice.sh
     chmod 700 $code_dir/set_admin_user.sh
 
-    find $data_dir \(   \! -perm -o= \
-                     -o \! -user $app \
-                     -o \! -group $app \) \
-                   -exec chown $app:$app {} \; \
-                   -exec chmod o= {} \;
+    if [ "${1:-}" == data ]; then
+        find $data_dir \(   \! -perm -o= \
+                         -o \! -user $app \
+                         -o \! -group $app \) \
+                    -exec chown $app:$app {} \; \
+                    -exec chmod o= {} \;
+    fi
 
     chown $app:$app -R /etc/matrix-$app
     chmod u=rwX,g=rX,o= -R /etc/matrix-$app

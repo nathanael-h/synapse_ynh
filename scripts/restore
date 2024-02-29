@@ -113,7 +113,7 @@ ynh_use_logrotate --logfile /var/log/matrix-$app
 #=================================================
 
 ynh_script_progression --message="Protecting directories..." --weight=3
-set_permissions
+set_permissions data
 
 #=================================================
 # RELOAD NGINX, SYNAPSE AND COTURN
