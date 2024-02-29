@@ -1,6 +1,6 @@
-## Configuration
+# Installation
 
-### Install for ARM arch (or slow arch)
+## Install for ARM arch (or slow arch)
 
 For all slow or arm architecture it's recommended to build the dh file before the install to have a quicker install.
 You could build it by this cmd : `openssl dhparam -out /etc/ssl/private/dh2048.pem 2048 > /dev/null`
@@ -9,15 +9,15 @@ After that you can install it without problem.
 The package uses a prebuilt python virtual environnement. The binary are taken from this repository: https://github.com/Josue-T/synapse_python_build
 The script to build the binary is also available.
 
-### Web client
+## Web client
 
 If you want a web client you can also install Element with this package: https://github.com/YunoHost-Apps/element_ynh .
 
-### Access by federation
+## Access by federation
 
 If your server name is identical to the domain on which synapse is installed, and the default port 8448 is used, your server is normally already accessible by the federation.
 
-If not, you can add the following line in the dns configuration but you normally don't need it as a .well-known file is edited during the install to declare your server name and port to the federation.
+If not, you can add the following line in the dns configuration but you normally don't need it as a `.well-known` file is edited during the install to declare your server name and port to the federation.
 
 ```
 _matrix._tcp.<server_name.tld> <ttl> IN SRV 10 0 <port> <domain-or-subdomain-of-synapse.tld>
@@ -36,13 +36,12 @@ You also need a valid TLS certificate for the domain used by synapse. To do that
 
 https://federationtester.matrix.org/ can be used to easily debug federation issues
 
-### Turnserver
+## Turnserver
 
 For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listens on two UDP and TCP ports. You can get them with these commands:
 ```bash
 yunohost app setting synapse port_turnserver_tls
 yunohost app setting synapse port_turnserver_alt_tls
-
 ```
 The turnserver will also choose a port dynamically when a new call starts. The range is between 49153 - 49193.
 
@@ -59,10 +58,10 @@ To prevent the situation when the server is behind a NAT, the public IP is writt
 If you have a dynamic IP address, you also might need to update this config automatically. To do that just edit a file named `/etc/cron.d/coturn_config_rotate` and add the following content (just adapt the __SYNAPSE_INSTANCE_NAME__ which could be `synapse` or maybe `synapse__2`).
 
 ```
-*/15 * * * * root bash /opt/yunohost/__SYNAPSE_INSTANCE_NAME__/Coturn_config_rotate.sh;
+*/15 * * * * root bash /opt/yunohost/matrix-SYNAPSE_INSTANCE_NAME/Coturn_config_rotate.sh;
 ```
 
-#### OpenVPN
+## OpenVPN
 
 In case of you have an OpenVPN server you might want than `synapse-coturn` restart when the VPN restart. To do this create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
 ```bash
@@ -85,7 +84,7 @@ And add this line in your OpenVPN config file
 ipchange /usr/local/bin/openvpn_up_script.sh
 ```
 
-### Important Security Note
+## Important Security Note
 
 We do not recommend running Element from the same domain name as your Matrix
 homeserver (synapse).  The reason is the risk of XSS (cross-site-scripting)
@@ -97,15 +96,13 @@ We have put some coarse mitigations into place to try to protect against this
 situation, but it's still not a good practice to do it in the first place. See
 https://github.com/vector-im/element-web/issues/1977 for more details.
 
-## YunoHost specific features
-
 ## Limitations
 
 Synapse uses a lot of ressource. So on slow architecture (like small ARM board), this app could take a lot of CPU and RAM.
 
 This app doesn't provide any real good web interface. So it's recommended to use Element client to connect to this app. This app is available [here](https://github.com/YunoHost-Apps/element_ynh)
 
-## Additional information
+# Additional information
 
 ## Administration
 
@@ -120,56 +117,92 @@ Before any manipulation it's recommended to do a backup by this following comman
 Actually there are no functions in the client interface to set a user as admin. So it's possible to enable it manually in the database.
 
 The following command will grant admin privilege to the specified user:
-```
-su --command="psql matrix_synapse" postgres <<< "UPDATE users SET admin = 1 WHERE name = '@user_to_be_admin:domain.tld'"
+```bash
+/opt/yunohost/matrix-SYNAPSE_INSTANCE_NAME/set_admin_user.sh '@user_to_be_admin:domain.tld'
 ```
 
 ### Administration API
 
-Synapse's administration API endpoints are under `/_synapse` path and protected with the `admin_api` permission.
-By default, no one has access to this path.
-
-If you wish to access it, for example to use [Synapse Admin](https://github.com/YunoHost-Apps/synapse-admin_ynh),
-you need to give this permission to visitors.
+There are an admiminstration application available if needed for example to use [Synapse Admin](https://github.com/YunoHost-Apps/synapse-admin_ynh).
 
 Then, to log in the API with your credentials, you need to set your user as admin (cf. precedent section).
 
-### Upgrade
+### Change url
 
-After this settings will be applied for **all** next upgrade.
+Synapse give the possibility to change the domain of the instance. Note that this will only change the domain on which the synapse server will run. **This won't change the domain name of the account which an other thing.**
 
-From command line:
+The advantage of this is that you can put the app on a specific domain without impacting the domain name of the accounts. For instance you can have the synapse app on `matrix.yolo.net` and the user account will be something like that `@michu:yolo.net`. Note that it's the main difference between the domain of the app (which is `matrix.yolo.net`) and the "server name" which is `yolo.net`.
 
-`yunohost app upgrade synapse`
+**Note that this change will have some important implications:**
+- **This will break the connection from all previous connected clients. So all client connected before this change won't be able to communicate with the server until users will do a logout and login (which can also be problematic for e2e keys).** [There are a workaround which are described below](#avoid-the-need-to-reconnect-all-client-after-change-url-operation).
+- In some case the client configuration will need to be updated. By example on element we can configure a default matrix server, this settings by example will need to be updated to the new domain to work correctly.
+- In case of the "server name" domain are not on the same server than the synapse domain, you will need to update the `.well-known` or your DNS.
+
+To do the change url of synapse you can do it by this following command or with the webadmin.
+
+```bash
+yunohost app change-url synapse
+```
+
+#### Avoid the need to reconnect all client after change-url operation
+
+In case of you have changed the url of synapse and you don't wan't to reconnect all client there are this workaround which should solve the issue.
+
+The idea is to setup again a minimal configuration on the previous domain so the client configurated with the previous domain will still work correctly.
+
+##### Nginx config
+
+Retrive the server port with this command:
+```bash
+yunohost app setting synapse port_synapse
+```
+
+Edit the file `/etc/nginx/conf.d/PREVIOUS-DOMAIN.TLD.d/synapse.conf` and add this text:
+```
+location /_matrix/ {
+        proxy_pass http://localhost:SERVER_PORT_RETRIVED_BEFORE;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+
+        client_max_body_size 200M;
+}
+```
+
+Then reload nginx config:
+```bash
+systemctl reload nginx.service
+```
+
+##### Add permanent rule on SSOWAT
+
+- Edit the file `/etc/ssowat/conf.json.persistent`
+- Add `"PREVIOUS-DOMAIN.TLD/_matrix"` into the list in: `permissions` > `custom_skipped` > `uris`
+
+Now the configured client before the change-url should work again.
 
 ### Backup
 
 This app use now the core-only feature of the backup. To keep the integrity of the data and to have a better guarantee of the restoration is recommended to proceed like this:
 
 - Stop synapse service with theses following command:
-
-`systemctl stop synapse.service`
+```bash
+systemctl stop synapse.service
+```
 
 - Launch the backup of synapse with this following command:
+```bash
+yunohost backup create --app synapse
+```
 
-`yunohost backup create --app synapse`
-
-- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/matrix-synapse`.
+- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/synapse`.
 - Restart the synapse service with these command:
-
-`systemctl start synapse.service`
+```bash
+systemctl start synapse.service
+```
 
 ### Remove
 
-Due of the backup core only feature the data directory in `/home/yunohost.app/matrix-synapse` **is not removed**.
+Due of the backup core only feature the data directory in `/home/yunohost.app/synapse` **is not removed**.
 
 Use the `--purge` flag with the command, or remove it manually to purge app user data.
-
-### Multi instance support
-
-To give a possibility to have multiple domains you can use multiple instances of synapse. In this case all instances will run on different ports so it's really important to put a SRV record in your domain. You can get the port that you need to put in your SRV record with this following command:
-```
-yunohost app setting synapse__<instancenumber> port_synapse_tls
-```
-
-Before installing a second instance of the app it's really recommended to update all existing instances.
