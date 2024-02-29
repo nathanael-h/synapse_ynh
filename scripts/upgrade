@@ -113,12 +113,12 @@ then
     registrations_require_3pid=email
     ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 fi
-if [ -z "${allowed_local_3pids_email:-}" ]
+if [ -z "${allowed_local_3pids_email:-}" ] || [[ "${allowed_local_3pids_email}" =~ "'.*'" ]] # Also remove shit value from previous config panel
 then
     allowed_local_3pids_email=''
     ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
 fi
-if [ -z "${allowed_local_3pids_msisdn:-}" ]
+if [ -z "${allowed_local_3pids_msisdn:-}" ] || [[ "${allowed_local_3pids_msisdn}" =~ "'.*'" ]] # Also remove shit value from previous config panel
 then
     allowed_local_3pids_msisdn=''
     ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
