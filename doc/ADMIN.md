@@ -6,7 +6,7 @@ For all slow or arm architecture it's recommended to build the dh file before th
 You could build it by this cmd : `openssl dhparam -out /etc/ssl/private/dh2048.pem 2048 > /dev/null`
 After that you can install it without problem.
 
-The package uses a prebuilt python virtual environnement. The binary are taken from this repository: https://github.com/Josue-T/synapse_python_build
+The package uses a prebuilt python virtual environnement. The binary are taken from this repository: https://github.com/YunoHost-Apps/synapse_python_build
 The script to build the binary is also available.
 
 ## Web client
@@ -24,9 +24,9 @@ _matrix._tcp.<server_name.tld> <ttl> IN SRV 10 0 <port> <domain-or-subdomain-of-
 ```
 for example
 ```
-_matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.example.com.
+_matrix._tcp.example.com. 3600    IN      SRV     10 0 <synapse_port> synapse.example.com.
 ```
-You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME port_synapse_tls`
+You need to replace `<synapse_port>` by the real port. This port can be obtained by the command: `yunohost app setting <synapse_instance_name> port_synapse_tls`
 
 For more details, see : https://github.com/element-hq/synapse/blob/master/docs/federate.md
 
@@ -53,12 +53,12 @@ yunohost firewall allow Both 49153:49193
 
 You might also need to open these ports (if it is not automatically done) on your ISP box.
 
-To prevent the situation when the server is behind a NAT, the public IP is written in the turnserver config. By this the turnserver can send its real public IP to the client. For more information see [the coturn example config file](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf#L102-L120).So if your IP changes, you could run the script `/opt/yunohost/__SYNAPSE_INSTANCE_NAME__/Coturn_config_rotate.sh` to update your config.
+To prevent the situation when the server is behind a NAT, the public IP is written in the turnserver config. By this the turnserver can send its real public IP to the client. For more information see [the coturn example config file](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf#L102-L120).So if your IP changes, you could run the script `/opt/yunohost/matrix-<synapse_instance_name>/Coturn_config_rotate.sh` to update your config.
 
-If you have a dynamic IP address, you also might need to update this config automatically. To do that just edit a file named `/etc/cron.d/coturn_config_rotate` and add the following content (just adapt the __SYNAPSE_INSTANCE_NAME__ which could be `synapse` or maybe `synapse__2`).
+If you have a dynamic IP address, you also might need to update this config automatically. To do that just edit a file named `/etc/cron.d/coturn_config_rotate` and add the following content (just adapt the `<synapse_instance_name>` which could be `synapse` or maybe `synapse__2`).
 
 ```
-*/15 * * * * root bash /opt/yunohost/matrix-SYNAPSE_INSTANCE_NAME/Coturn_config_rotate.sh;
+*/15 * * * * root bash /opt/yunohost/matrix-<synapse_instance_name>/Coturn_config_rotate.sh;
 ```
 
 ## OpenVPN
@@ -118,7 +118,7 @@ Actually there are no functions in the client interface to set a user as admin. 
 
 The following command will grant admin privilege to the specified user:
 ```bash
-/opt/yunohost/matrix-SYNAPSE_INSTANCE_NAME/set_admin_user.sh '@user_to_be_admin:domain.tld'
+/opt/yunohost/matrix-<synapse_instance_name>/set_admin_user.sh '@user_to_be_admin:domain.tld'
 ```
 
 ### Administration API
@@ -157,10 +157,10 @@ Retrive the server port with this command:
 yunohost app setting synapse port_synapse
 ```
 
-Edit the file `/etc/nginx/conf.d/PREVIOUS-DOMAIN.TLD.d/synapse.conf` and add this text:
+Edit the file `/etc/nginx/conf.d/<previous-domain.tld>.d/synapse.conf` and add this text:
 ```
 location /_matrix/ {
-        proxy_pass http://localhost:SERVER_PORT_RETRIVED_BEFORE;
+        proxy_pass http://localhost:<server_port_retrived_before>;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;
@@ -177,7 +177,7 @@ systemctl reload nginx.service
 ##### Add permanent rule on SSOWAT
 
 - Edit the file `/etc/ssowat/conf.json.persistent`
-- Add `"PREVIOUS-DOMAIN.TLD/_matrix"` into the list in: `permissions` > `custom_skipped` > `uris`
+- Add `"<previous-domain.tld>/_matrix"` into the list in: `permissions` > `custom_skipped` > `uris`
 
 Now the configured client before the change-url should work again.
 
