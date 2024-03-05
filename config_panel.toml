@@ -151,14 +151,16 @@ services = ["__APP__"]
 name = "Advanced Settings"
 services = ["matrix-__APP__"]
 
-    [advanced.help]
-    name = "SETTINGS FOR EXPERTS IN SERVER ADMINISTRATION"
-
-        [advanced.help.text]
-        ask = '''
-        !!There are security and privacy risks if you change these settings without knowing what you do!!
-        '''
-        type = "markdown"
+    # Disabled as it don't work any more on bookworm
+    #
+    # [advanced.help]
+    # name = "SETTINGS FOR EXPERTS IN SERVER ADMINISTRATION"
+    #
+    #     [advanced.help.text]
+    #     ask = '''
+    #     !!There are security and privacy risks if you change these settings without knowing what you do!!
+    #     '''
+    #     type = "markdown"
 
     [advanced.others]
     name = "Others"
