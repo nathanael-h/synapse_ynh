@@ -1203,7 +1203,7 @@ turn_user_lifetime: 1h
 # connect to arbitrary endpoints without having first signed up for a
 # valid account (e.g. by passing a CAPTCHA).
 #
-turn_allow_guests: __TURN_ALLOW_GUESTS__
+turn_allow_guests: __ALLOW_GUEST_ACCESS__
 
 
 ## Registration ##

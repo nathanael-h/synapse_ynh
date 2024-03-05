@@ -43,7 +43,6 @@ notif_for_new_users="true"
 enable_group_creation="true"
 push_include_content="true"
 enable_3pid_lookup=false
-turn_allow_guests=false
 
 if [ "$is_free_registration" -eq 0 ]
 then
@@ -90,7 +89,6 @@ ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_
 ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
 ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
 ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
-ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
 ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
 

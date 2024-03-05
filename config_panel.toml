@@ -222,10 +222,3 @@ services = ["matrix-__APP__"]
             ask = "Shared Secret for Registration"
             type = "string"
             help = "Allows registration of standard or admin accounts, even if Registration disabled."
-
-            [advanced.registration.turn_allow_guests]
-            ask = "Should guests be allowed to use the TURN server"
-            type = "boolean"
-            yes = "true"
-            no = "false"
-            help = "This defaults to True, otherwise VoIP will be unreliable for guests. However, it does introduce a slight security risk as it allows users to connect to arbitrary endpoints without having first signed up for a valid account (e.g. by passing a CAPTCHA)."

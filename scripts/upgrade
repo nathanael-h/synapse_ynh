@@ -173,11 +173,6 @@ then
     enable_3pid_lookup=false
     ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
 fi
-if [ -z "${turn_allow_guests:-}" ]
-then
-    turn_allow_guests=false
-    ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
-fi
 
 
 if [ -z "${enable_registration:-}" ]
