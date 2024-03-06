@@ -49,6 +49,7 @@ setuptools-rust==1.9.0
 signedjson==1.1.4
 six==1.16.0
 sortedcontainers==2.4.0
+tomli==2.0.1
 treq==23.11.0
 Twisted==24.3.0
 typing_extensions==4.10.0

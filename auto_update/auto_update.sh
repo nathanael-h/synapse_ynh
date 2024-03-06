@@ -4,8 +4,8 @@ set -eu
 
 source auto_update_config.sh
 
-readonly debian_version_name_1="bookworm"
-readonly debian_version_name_2="bullseye"
+readonly debian_version_name_1=bullseye
+readonly debian_version_name_2=bookworm
 
 get_from_manifest() {
     result=$(python3 <<EOL
