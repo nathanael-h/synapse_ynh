@@ -51,15 +51,15 @@ upgrade_synapse() {
         push_armv7_build
 
         # Update python requirement
-        cp $build_result_path_deb_1/${result_prefix_name_deb_1}-build1_requirement.txt ../conf/requirement_$debian_version_name_1.txt
-        cp $build_result_path_deb_2/${result_prefix_name_deb_2}-build1_requirement.txt ../conf/requirement_$debian_version_name_2.txt
+        cp "$build_result_path_deb_1/${result_prefix_name_deb_1}"-build1_requirement.txt ../conf/requirement_"$debian_version_name_1".txt
+        cp "$build_result_path_deb_2/${result_prefix_name_deb_2}"-build1_requirement.txt ../conf/requirement_"$debian_version_name_2".txt
 
         # Update manifest
         sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh1"|version = "'${synapse_version}'~ynh1"|' ../manifest.toml
 
         # Update this link
-        sed -r -i "s|arm.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
-        sed -r -i "s|arm.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_2-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_2-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
 
         # Update checksum
         sha256sum_arm_archive_deb_1=$(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)
