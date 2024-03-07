@@ -24,11 +24,11 @@ Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https
 **Shipped version:** 1.102.0~ynh1
 ## Documentation and resources
 
-* Official app website: <https://matrix.org/>
-* Official admin documentation: <https://matrix-org.github.io/synapse/latest/welcome_and_overview.html>
-* Upstream app code repository: <https://github.com/element-hq/synapse>
-* YunoHost Store: <https://apps.yunohost.org/app/synapse>
-* Report a bug: <https://github.com/YunoHost-Apps/synapse_ynh/issues>
+- Official app website: <https://matrix.org/>
+- Official admin documentation: <https://matrix-org.github.io/synapse/latest/welcome_and_overview.html>
+- Upstream app code repository: <https://github.com/element-hq/synapse>
+- YunoHost Store: <https://apps.yunohost.org/app/synapse>
+- Report a bug: <https://github.com/YunoHost-Apps/synapse_ynh/issues>
 
 ## Developer info
 
