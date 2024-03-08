@@ -10,129 +10,11 @@ source _common.sh
 source experimental_helper.sh
 source /usr/share/yunohost/helpers
 
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=3
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-server_name=$(ynh_app_setting_get --app=$app --key=server_name)
-jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
-is_free_registration=$(ynh_app_setting_get --app=$app --key=is_free_registration)
-port=$(ynh_app_setting_get --app=$app --key=synapse_port)
-synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
-turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
-turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
-cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
-report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
-e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
-synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
-turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
-registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_shared_secret)
-form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
-macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
-synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
-domain_whitelist_client_=$(get_domain_list)
-domain_whitelist_client=${domain_whitelist_client_%"\n"}
-main_domain=$(yunohost domain list --output-as json | jq -r .main)
-
 #=================================================
 # SET ALL CONSTANT
 #=================================================
 
-synapse_user="matrix-$app"
-synapse_user_app="$app"
-synapse_db_name="matrix_$app"
-synapse_db_user="matrix_$app"
-synapse_db_name="matrix_$app"
-upstream_version=$(ynh_app_upstream_version)
 upgrade_type=$(ynh_check_app_version_changed)
-final_www_path="/var/www/$app"
-data_path="/home/yunohost.app/matrix-$app"
-
-#=================================================
-# GET CONFIG PANEL SETTINGS
-#=================================================
-
-server_statistics=$(ynh_app_setting_get --app=$app --key=server_statistics)
-web_client_location=$(ynh_app_setting_get --app=$app --key=web_client_location)
-client_base_url=$(ynh_app_setting_get --app=$app --key=client_base_url)
-invite_client_location=$(ynh_app_setting_get --app=$app --key=invite_client_location)
-allow_public_rooms_without_auth=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_without_auth)
-allow_public_rooms_over_federation=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_over_federation)
-max_upload_size=$(ynh_app_setting_get --app=$app --key=max_upload_size)
-disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisdn_registration)
-registrations_require_3pid=$(ynh_app_setting_get --app=$app --key=registrations_require_3pid)
-allowed_local_3pids_email=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_email)
-allowed_local_3pids_msisdn=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_msisdn)
-account_threepid_delegates_msisdn=$(ynh_app_setting_get --app=$app --key=account_threepid_delegates_msisdn)
-allow_guest_access=$(ynh_app_setting_get --app=$app --key=allow_guest_access)
-default_identity_server=$(ynh_app_setting_get --app=$app --key=default_identity_server)
-auto_join_rooms=$(ynh_app_setting_get --app=$app --key=auto_join_rooms)
-autocreate_auto_join_rooms=$(ynh_app_setting_get --app=$app --key=autocreate_auto_join_rooms)
-auto_join_rooms_for_guests=$(ynh_app_setting_get --app=$app --key=auto_join_rooms_for_guests)
-enable_notifs=$(ynh_app_setting_get --app=$app --key=enable_notifs)
-notif_for_new_users=$(ynh_app_setting_get --app=$app --key=notif_for_new_users)
-enable_group_creation=$(ynh_app_setting_get --app=$app --key=enable_group_creation)
-
-enable_registration=$(ynh_app_setting_get --app=$app --key=enable_registration)
-turn_allow_guests=$(ynh_app_setting_get --app=$app --key=turn_allow_guests)
-sso_enabled=$(ynh_app_setting_get --app=$app --key=sso_enabled)
-password_enabled=$(ynh_app_setting_get --app=$app --key=password_enabled)
-enable_3pid_lookup=$(ynh_app_setting_get --app=$app --key=enable_3pid_lookup)
-push_include_content=$(ynh_app_setting_get --app=$app --key=push_include_content)
-
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
-
-# Following the discussion here https://github.com/YunoHost-Apps/synapse_ynh/pull/51 we decided to remove definitely the support of the old package migration.
-if [ -z "$synapse_old_version" ]
-then
-	ynh_die --message="Update from this synapse version is not available. You need to remove this package and reinstall the new package version."
-fi
-
-#=================================================
-# MIGRATION 7 : Working config panel v1
-#=================================================
-backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=backup_before_upgrade)
-if [ -z $backup_before_upgrade ] ; then
-    backup_before_upgrade="true"
-    disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
-    if [ "0$disable_backup_before_upgrade" -ne 0 ]; then
-        backup_before_upgrade="false"
-    fi
-    ynh_app_setting_set --app=$app --key=backup_before_upgrade --value=$backup_before_upgrade
-fi
-
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-
-# We stop the service before to set ynh_clean_setup
-ynh_systemd_action --service_name=matrix-$app.service --action=stop
-
-# Backup the current version of the app
-if $backup_before_upgrade ; then
-    ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=30
-    ynh_backup_before_upgrade
-    ynh_clean_setup () {
-        # Clean installation remainings that are not handled by the remove script.
-        ynh_clean_check_starting
-        ynh_restore_upgradebackup
-    }
-else
-    ynh_script_progression --message="NOT Backing up the app before upgrading..." --weight=1
-fi
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -141,312 +23,261 @@ fi
 #=================================================
 
 # Migrate from settings 'special_domain' to 'domain' and 'special_path' to 'path'
-if [ -z $domain ]; then
+if [ -z "${domain:-}" ]; then
     domain=$(ynh_app_setting_get --app=$app --key=special_domain)
-    path_url=$(ynh_app_setting_get --app=$app --key=special_path)
+    path=$(ynh_app_setting_get --app=$app --key=special_path)
     ynh_app_setting_set --app=$app --key=domain --value=$domain
-    ynh_app_setting_set --app=$app --key=path --value=$path_url
+    ynh_app_setting_set --app=$app --key=path --value=$path
     ynh_app_setting_delete --app=$app --key=special_domain
     ynh_app_setting_delete --app=$app --key=special_path
     ynh_app_setting_set --app=$app --key=no_sso --value true
 fi
 
 # Define $server_name if not already defined
-if [ -z $server_name ]; then
-   server_name=$domain
-   ynh_app_setting_set --app=$app --key=server_name --value=$domain
+if [ -z "${server_name:-}" ]; then
+    server_name=$domain
+    ynh_app_setting_set --app=$app --key=server_name --value=$domain
 fi
 
 # Define $jitsi_server if not already defined
-if [ -z $jitsi_server ]; then
-   jitsi_server='jitsi.riot.im'
-   ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
+if [ -z "${jitsi_server:-}" ]; then
+    jitsi_server='jitsi.riot.im'
+    ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 fi
 
 # Define $e2e_enabled_by_default if not already defined
-if [ -z $e2e_enabled_by_default ] ; then
-   e2e_enabled_by_default="invite"
-   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+if [ -z "${e2e_enabled_by_default:-}" ] ; then
+    e2e_enabled_by_default="invite"
+    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
 if [ "$e2e_enabled_by_default" = "true" ] ; then
-   e2e_enabled_by_default="all"
-   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+    e2e_enabled_by_default="all"
+    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
 if [ "$e2e_enabled_by_default" = "false" ]; then
-   e2e_enabled_by_default="off"
-   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+    e2e_enabled_by_default="off"
+    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
-if [ -z $report_stats ]; then
+if [ -z "${report_stats:-}" ]; then
     report_stats="false"
     ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 fi
 
-if [ -z $is_free_registration ]; then
-    is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
+if [ -z "${web_client_location:-}" ]
+then
+    web_client_location="https://matrix.to/"
+
+    element_instance="element"
+    if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
+        element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+        element_path=$(ynh_app_setting_get --app $element_instance --key path)
+        web_client_location="https://""$element_domain""$element_path"
+    fi
+    ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
+fi
+if [ -z "${client_base_url:-}" ]
+then
+    client_base_url=$web_client_location
+    ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
+fi
+if [ -z "${invite_client_location:-}" ]
+then
+    invite_client_location=$web_client_location
+    ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
+fi
+if [ -z "${allow_public_rooms_without_auth:-}" ]
+then
+    allow_public_rooms_without_auth=${allow_public_rooms:-false}
+    ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
+fi
+if [ -z "${allow_public_rooms_over_federation:-}" ]
+then
+    allow_public_rooms_over_federation=${allow_public_rooms:-false}
+    ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+fi
+if [ -z "${max_upload_size:-}" ]
+then
+    max_upload_size="100M"
+    ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
+fi
+if [ -z "${disable_msisdn_registration:-}" ]
+then
+    disable_msisdn_registration="true"
+    ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
+fi
+if [ -z "${registrations_require_3pid:-}" ] || [ "${registrations_require_3pid}" == none ]
+then
+    registrations_require_3pid=email
+    ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
+fi
+if [ -z "${allowed_local_3pids_email:-}" ] || [[ "${allowed_local_3pids_email}" =~ "'.*'" ]] # Also remove shit value from previous config panel
+then
+    allowed_local_3pids_email=''
+    ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
+fi
+if [ -z "${allowed_local_3pids_msisdn:-}" ] || [[ "${allowed_local_3pids_msisdn}" =~ "'.*'" ]] # Also remove shit value from previous config panel
+then
+    allowed_local_3pids_msisdn=''
+    ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
+fi
+if [ -z "${account_threepid_delegates_msisdn:-}" ]
+then
+    account_threepid_delegates_msisdn=""
+    ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
+fi
+if [ -z "${allow_guest_access:-}" ]
+then
+    allow_guest_access="false"
+    ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
+fi
+if [ -z "${default_identity_server:-}" ]
+then
+    default_identity_server="https://matrix.org"
+    ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
+fi
+if [ -z "${auto_join_rooms:-}" ]
+then
+    auto_join_rooms=""
+    ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+fi
+if [ -z "${autocreate_auto_join_rooms:-}" ]
+then
+    autocreate_auto_join_rooms="false"
+    ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
+fi
+if [ -z "${auto_join_rooms_for_guests:-}" ]
+then
+    auto_join_rooms_for_guests="true"
+    ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
+fi
+if [ -z "${enable_notifs:-}" ]
+then
+    enable_notifs="true"
+    ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
+fi
+if [ -z "${notif_for_new_users:-}" ]
+then
+    notif_for_new_users="true"
+    ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
+fi
+if [ -z "${enable_group_creation:-}" ]
+then
+    enable_group_creation="true"
+    ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
+fi
+if [ -z "${enable_3pid_lookup:-}" ]
+then
+    enable_3pid_lookup=false
+    ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
 fi
 
-if [ -z $synapse_user_app_pwd ]; then
-    synapse_user_app_pwd="$(ynh_string_random --length=30)"
-    ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
-    # The format to create an user account varies depending on the version of YunoHost currently installed.
-    ynh_current_version=$(dpkg-query --showformat='${Version}' --show yunohost)
-    if $(dpkg --compare-versions "$ynh_current_version" ge "11.1"); then
-        yunohost user create $synapse_user_app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
-    else
-        yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
-    fi
+
+if [ -z "${enable_registration:-}" ]
+then
+  if [ -z "${is_free_registration:-}" ]; then
+      is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
+  fi
+
+  if [ "$is_free_registration" -eq "0" ]
+  then
+      enable_registration="false"
+      password_enabled="false"
+
+  else
+      enable_registration="true"
+      password_enabled="true"
+  fi
+  ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
+  ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 fi
+
+if [ -z "${push_include_content:-}" ]
+then
+    push_include_content="true"
+    ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
+fi
+if [ -z "${enable_dtls_for_audio_video_turn_call:-}" ]
+then
+    enable_dtls_for_audio_video_turn_call="true"
+    ynh_app_setting_set --app=$app --key=enable_dtls_for_audio_video_turn_call --value=$enable_dtls_for_audio_video_turn_call
+fi
+
+#=================================================
+# MIGRATION 7 : STANDARDIZE SYSTEMD UNIT
+#=================================================
+
+if [ -e /etc/systemd/system/matrix-$app.service ]
+then
+    ynh_script_progression --message='Migrating systemd unit to standard name...'
+
+    systemctl stop matrix-$app.service || true
+    systemctl stop coturn-$app.service || true
+
+    yunohost service remove matrix-$app || true
+    yunohost service remove coturn-$app || true
+
+    ynh_secure_remove --file=/etc/systemd/system/matrix-$app.service
+    ynh_secure_remove --file=/etc/systemd/system/coturn-$app.service
+
+    touch /etc/systemd/system/$app.service
+    systemctl daemon-reload || true
+fi
+
+#=================================================
+# STOP SERVICES
+#=================================================
+
+# We stop the service
+ynh_systemd_action --service_name=$app.service --action=stop
+
+ynh_script_progression --message='Managing migrations...'
 
 #=================================================
 # MIGRATION 6 : Migrate data directory
 #=================================================
 
 if [ -e "/var/lib/matrix-$app" ]; then
-    ynh_script_progression --message="Moving data directory to $data_path..." --weight=1
-    if [ -e "$data_path" ]; then
-        old_data_dir_path="$data_path$(date '+%Y%m%d.%H%M%S')"
+    ynh_script_progression --message="Moving data directory to $data_dir..." --weight=1
+    if [ -e "$data_dir" ]; then
+        old_data_dir_path="$data_dir$(date '+%Y%m%d.%H%M%S')"
         ynh_print_warn "A data directory already exist. Data was renamed to $old_data_dir_path"
-        mv "$data_path" "$old_data_dir_path"
+        mv "$data_dir" "$old_data_dir_path"
     fi
-    mv "/var/lib/matrix-$app" "$data_path"
-fi
-if ! grep -q "$final_path" /etc/passwd; then
-    # matrix-synapse:x:994:994::/var/lib/matrix-synapse:/usr/sbin/nologin
-    sed --in-place -r "s@matrix-$app\:x\:([[:digit:]]+\:[[:digit:]]+)\:\:/.*/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:\1\:\:$final_path\:/usr/sbin/nologin@g" /etc/passwd
+    mv "/var/lib/matrix-$app" "$data_dir"
 fi
 
 #=================================================
-# MIGRATION 7 : Working config panel v1
+# MIGRATION 3 : USE STANDARD ACCESS FOR CERTIFCATE
 #=================================================
 
-allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
-if [ -z $allow_public_rooms ]; then
-    allow_public_rooms="false"
-fi
+# Fix issue about certificates access
+if [ ! $(grep "ssl-cert:x:[0-9]*:.*$app" /etc/group) ]
+then
+    ynh_script_progression --message="Use standard access for certificate..." --weight=1
 
-# SET STANDARD SETTINGS FROM DEFAULT CONFIG
-
-# Get app name of first Element Instance
-element_ynh_url="https://matrix.to/"
-element_domain=""
-element_path=""
-web_client_location=$element_ynh_url
-client_base_url=$element_ynh_url
-invite_client_location=$element_ynh_url
-element_instance="element"
-if [ -z "$web_client_location" ]
-then
-  if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
-    element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-    element_path=$(ynh_app_setting_get --app $element_instance --key path)
-    element_ynh_url="https://""$element_domain""$element_path"
-  fi
-  web_client_location=$element_ynh_url
-  client_base_url=$element_ynh_url
-  invite_client_location=$element_ynh_url
-  ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
-  ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
-  ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
-fi
-
-if [ -z "$server_statistics" ]
-then
-  server_statistics="false"
-  ynh_app_setting_set --app=$app --key=server_statistics --value=$server_statistics
-fi
-if [ -z "$allow_public_rooms_without_auth" ]
-then
-  allow_public_rooms_without_auth=$allow_public_rooms
-  ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
-fi
-if [ -z "$allow_public_rooms_over_federation" ]
-then
-  allow_public_rooms_over_federation=$allow_public_rooms
-  ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
-fi
-if [ -z "$max_upload_size" ]
-then
-  max_upload_size="10M"
-  ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
-fi
-if [ -z "$disable_msisdn_registration" ]
-then
-  disable_msisdn_registration="true"
-  ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
-fi
-if [ -z "$registrations_require_3pid" ]
-then
-  registrations_require_3pid="none"
-  ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
-fi
-if [ -z "$allowed_local_3pids_email" ]
-then
-  allowed_local_3pids_email="'^[^@]+@""matrix""\.org$'"
-  ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
-fi
-if [ -z "$allowed_local_3pids_msisdn" ]
-then
-  allowed_local_3pids_msisdn="'\+33'"
-  ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
-fi
-if [ -z "$account_threepid_delegates_msisdn" ]
-then
-  account_threepid_delegates_msisdn=""
-  ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
-fi
-if [ -z "$allow_guest_access" ]
-then
-  allow_guest_access="false"
-  ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
-fi
-if [ -z "$default_identity_server" ]
-then
-  default_identity_server="https://matrix.org"
-  ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
-fi
-if [ -z "$auto_join_rooms" ]
-then
-  auto_join_rooms="#auto_join_room:""$server_name"
-  ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
-fi
-if [ -z "$autocreate_auto_join_rooms" ]
-then
-  autocreate_auto_join_rooms="false"
-  ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
-fi
-if [ -z "$auto_join_rooms_for_guests" ]
-then
-  auto_join_rooms_for_guests="true"
-  ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
-fi
-if [ -z "$enable_notifs" ]
-then
-  enable_notifs="true"
-  ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
-fi
-if [ -z "$notif_for_new_users" ]
-then
-  notif_for_new_users="true"
-  ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
-fi
-if [ -z "$enable_group_creation" ]
-then
-  enable_group_creation="true"
-  ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
-fi
-
-if [ -z "$enable_registration" ]
-then
-  if [ "$is_free_registration" -eq "0" ]
-  then
-      enable_registration="false"
-      turn_allow_guests="false"
-      sso_enabled="true"
-      password_enabled="false"
-      enable_3pid_lookup="false"
-  else
-      enable_registration="true"
-      turn_allow_guests="true"
-      sso_enabled="false"
-      password_enabled="true"
-      enable_3pid_lookup="true"
-  fi
-  ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
-  ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
-  ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
-  ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
-  ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
-fi
-
-if [ -z "$push_include_content" ]
-then
-  push_include_content="true"
-  ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
+    adduser $app ssl-cert
+    adduser turnserver ssl-cert
 fi
 
 #=================================================
-# INSTALL DEPENDENCIES
+# MIGRATION 4 : CREATE A DH FILE
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
-ynh_exec_warn_less ynh_install_app_dependencies $dependances
 
-#=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
-
-if [ "$upgrade_type" == "UPGRADE_APP" ] || [ ! -e $final_path/bin/python3 ] || [ ! -e $final_path/lib/python$python_version ]
+# Make dh cert for synapse if it doesn't exist
+if [ ! -e /etc/ssl/private/dh2048.pem ]
 then
-	ynh_script_progression --message="Upgrading source files..." --weight=6
-	install_sources
+    ynh_script_progression --message="Creating a dh file..." --weight=1
+
+    ynh_exec_warn_less openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048
+    chown root:ssl-cert /etc/ssl/private/dh2048.pem
+    chmod 640 /etc/ssl/private/dh2048.pem
 fi
-
-#=================================================
-# CREATE SMALL CAS SERVER
-#=================================================
-# WARNING : theses command are used in INSTALL, UPGRADE
-# For any update do it in all files
-
-mkdir -p $final_www_path
-cp ../sources/cas_server.php $final_www_path/
-chmod u=rwX,g=rX,o= -R $final_www_path
-chown $synapse_user:root -R $final_www_path
-
-#=================================================
-# MIGRATION 1 : GENERATE SYNAPSE SECRET
-#=================================================
-
-if [ -z "$registration_shared_secret" ] || [ "$form_secret" == "form_secret: " ]
-then
-    ynh_script_progression --message="Generating synapse secret..." --weight=1
-
-    # Go in virtualenvironnement
-    set +u
-    source $final_path/bin/activate
-    set -u
-
-    # Generate config and keys
-    python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
-
-    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
-    set +u;
-    deactivate
-    set -u;
-
-    # Get random values from config
-    registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
-    form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
-
-    # store in yunohost settings
-    ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
-    ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
-fi
-
-#=================================================
-# UPDATE SYNAPSE CONFIG
-#=================================================
-ynh_script_progression --message="Updating synapse config..." --weight=2
-
-# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
-# For any update do it in all files
-
-if [ -z $macaroon_secret_key ]; then
-    # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
-    # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
-    # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
-    # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
-    macaroon_secret_key_param='# macaroon_secret_key: ""'
-else
-    macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-fi
-
-ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
-ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 
 #=================================================
 # MIGRATION 2 : MULTINSTANCE SUPPORT
@@ -463,15 +294,6 @@ then
     # Disable default config for turnserver and create a new service
     systemctl stop coturn.service
 
-    # Set a port for each service in turnserver
-    turnserver_alt_tls_port=$(ynh_find_port --port=$((turnserver_tls_port+1)))
-    cli_port=$(ynh_find_port --port=5766)
-
-    ynh_app_setting_set --app=$app --key=turnserver_alt_tls_port --value=$turnserver_alt_tls_port
-    ynh_app_setting_set --app=$app --key=cli_port --value=$cli_port
-
-    yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
-
     #=================================================
     # MAKE A CLEAN LOGROTATE CONFIG
     #=================================================
@@ -480,37 +302,108 @@ then
 fi
 
 #=================================================
-# MIGRATION 3 : USE STANDARD ACCESS FOR CERTIFCATE
+# MIGRATION 8 : Migrate database to managed database (Migrate db name from matrix_$app to $app)
 #=================================================
 
-# Fix issue about certificates access
-if [ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-$app" /etc/group) ]
-then
-    ynh_script_progression --message="Use standard access for certificate..." --weight=1
-
-    adduser $synapse_user ssl-cert
-    adduser turnserver ssl-cert
+if ynh_psql_execute_as_root --sql='\list' | grep matrix_$app; then
+    ynh_''psql_remove_db --db_user="user_wich_must_dont_exist_and_keep_current_user" --db_name=$db_name
+    ynh_psql_execute_as_root --sql="ALTER DATABASE matrix_$app RENAME TO $db_name;"
+    ynh_psql_execute_as_root --database=$db_name --sql="REASSIGN OWNED BY matrix_$app TO $db_user;"
+    ynh_psql_execute_as_root --sql="UPDATE pg_database SET datcollate='C', datctype='C' WHERE datname='$db_name';"
+    ynh_psql_execute_as_root --sql="DROP USER matrix_$app;"
+    # for unknown reason we need to set again the password for synapse user. Without this synapse can't authenticate to postgresql
+    ynh_psql_execute_as_root --sql="ALTER USER $db_user WITH ENCRYPTED PASSWORD '$db_pwd';"
 fi
 
 #=================================================
-# MIGRATION 4 : CREATE A DH FILE
+# MIGRATION 9 : migrate data path (from matrix-$app to $app)
 #=================================================
 
-# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
-# For any update do it in all files
+if [ -e /home/yunohost.app/matrix-$app ]; then
+    mv -t $data_dir /home/yunohost.app/matrix-$app/*
+    ynh_secure_remove --file=/home/yunohost.app/matrix-$app
+fi
 
-# Make dh cert for synapse if it doesn't exist
-if [ ! -e /etc/ssl/private/dh2048.pem ]
+#=================================================
+# MIGRATION 11 : make this app using full domain
+#=================================================
+
+ynh_app_setting_set --app=$app --key=path --value=/
+
+if yunohost app map -r --output-as json | jq -r '."'$domain'" | select( . != null ) | .[] | .id' | grep -v "$app" -q; then
+    ynh_print_warn 'An other app is installed on this domain. Now synapse require to be alone on the domain.'
+    ynh_print_warn 'To solve this you can:'
+    ynh_print_warn " - Remove or move all other app which use '$domain'"
+    ynh_print_warn ' - Change the domain of synapse. You can find more informations here: https://github.com/YunoHost-Apps/synapse_ynh/blob/ce38d582ea379f60574a438056893cac79525808/doc/ADMIN.md#change-url'
+fi
+
+#=================================================
+# MIGRATION 12 : update system user and drop yunohost user
+#=================================================
+
+if grep -q "^matrix-$app" /etc/passwd; then
+    # Must stop php before remove user as user is used by php
+    systemctl stop php$YNH_PHP_VERSION-fpm.service
+
+    ynh_''system_user_delete --username=matrix-$app
+    yunohost user delete $app || true
+    ynh_''system_user_create --username=$app --home_dir=$code_dir
+    adduser $app ssl-cert
+fi
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+if [ "$upgrade_type" == "UPGRADE_APP" ] || [ ! -e $code_dir/bin/python3 ] || [ ! -e $code_dir/lib/python$python_version ]
 then
-    ynh_script_progression --message="Creating a dh file..." --weight=1
+    ynh_script_progression --message="Upgrading source files..." --weight=6
+    install_sources
+fi
 
-    openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048 -dsaparam 2> /dev/null
-    chown root:ssl-cert /etc/ssl/private/dh2048.pem
-    chmod 640 /etc/ssl/private/dh2048.pem
+#=================================================
+# MIGRATION 1 : GENERATE SYNAPSE SECRET
+#=================================================
+
+if [ -z "${registration_shared_secret:-}" ] || [ "$form_secret" == "form_secret: " ]
+then
+    ynh_script_progression --message="Generating synapse secret..." --weight=1
+
+    # Generate config and keys
+    $code_dir/bin/python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
+
+    # Get random values from config
+    registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
+    form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
+
+    # store in yunohost settings
+    ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
+    ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
 fi
 
 #=================================================
 # STANDARD UPGRADE STEPS
+#=================================================
+
+#=================================================
+# UPDATE SYNAPSE CONFIG
+#=================================================
+ynh_script_progression --message="Updating synapse config..." --weight=2
+
+configure_synapse
+
+#=================================================
+# CREATE SMALL CAS SERVER
+#=================================================
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+mkdir -p $install_dir
+cp ../sources/cas_server.php $install_dir/
+chmod u=rwX,g=rX,o= -R $install_dir
+chown $app:root -R $install_dir
+
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -520,19 +413,8 @@ ynh_script_progression --message="Upgrading NGINX web server configuration..." -
 ynh_script_progression --message="Configuring application..."
 
 ynh_add_fpm_config --usage=low --footprint=low
-sed -i "s|user\s*=\s*$app|user = matrix-$app|g" /etc/php/7.*/fpm/pool.d/$app.conf
-sed -i "s|group\s*=\s*$app|group = matrix-$app|g" /etc/php/7.*/fpm/pool.d/$app.conf
-sed -i "s|chdir\s*=\s*/opt/yunohost/matrix-synapse.*|chdir = $final_www_path|g" /etc/php/7.*/fpm/pool.d/$app.conf
-ynh_store_file_checksum --file=$(ls /etc/php/7.*/fpm/pool.d/$app.conf)
 
-# Create .well-known redirection for access by federation
-if yunohost --output-as plain domain list | grep -q "^$server_name$"
-then
-    ynh_add_config --template="server_name.conf" --destination="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-fi
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config app
+configure_nginx
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -541,26 +423,7 @@ ynh_add_nginx_config app
 #=================================================
 ynh_script_progression --message="Updating Coturn config..." --weight=1
 
-# WARNING : theses command are used in INSTALL, UPGRADE
-# For any update do it in all files
-
-# Get public IP and set as external IP for coturn
-# note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
-public_ip4="$(curl -s ip.yunohost.org)" || true
-public_ip6="$(curl -s ipv6.yunohost.org)" || true
-
-turn_external_ip=""
-if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
-then
-    turn_external_ip+="external-ip="$public_ip4%"\n"
-fi
-
-if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
-then
-    turn_external_ip+="external-ip="$public_ip6%"\n"
-fi
-
-ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
+configure_coturn
 
 #=================================================
 # ADD SCRIPT FOR COTURN CRON AND APP SERVICE
@@ -569,8 +432,9 @@ ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/cotu
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
-ynh_add_config --template="../sources/Coturn_config_rotate.sh" --destination="$final_path/Coturn_config_rotate.sh"
-ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destination="$final_path/update_synapse_for_appservice.sh"
+ynh_add_config --template="../sources/Coturn_config_rotate.sh" --destination="$code_dir/Coturn_config_rotate.sh"
+ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destination="$code_dir/update_synapse_for_appservice.sh"
+ynh_add_config --template=../sources/set_admin_user.sh --destination=$code_dir/set_admin_user.sh
 
 # Ensure app-service folder has exists and the config file exit (Migration)
 mkdir -p /etc/matrix-$app/app-service
@@ -587,8 +451,8 @@ fi
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
-yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port
+yunohost service add $app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $port_synapse_tls --description 'Main matrix server service.'
+yunohost service add $app-coturn --needs_exposed_ports $port_turnserver_tls --description 'Turn server for matrix server. Used for audio and video call.'
 
 #=================================================
 # UPDATE SYSTEMD
@@ -596,19 +460,15 @@ yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=3
 
 # Create systemd service for synapse and turnserver
-cp ../conf/default_matrix-synapse /etc/default/matrix-$app
-ynh_add_systemd_config --service=matrix-$app --template=matrix-synapse.service
+ynh_add_systemd_config --service=$app --template=synapse.service
 
 cp ../conf/default_coturn /etc/default/coturn-$app
-ynh_add_systemd_config --service=coturn-$app --template=coturn-synapse.service
+ynh_add_systemd_config --service=$app-coturn --template=synapse-coturn.service
 
 #=================================================
 # UPGRADE FAIL2BAN
 #=================================================
 ynh_script_progression --message="Reconfiguring Fail2Ban..." --weight=8
-
-# WARNING : theses command are used in INSTALL, UPGRADE
-# For any update do it in all files
 
 ynh_add_fail2ban_config --use_template
 
@@ -617,58 +477,28 @@ ynh_add_fail2ban_config --use_template
 #=================================================
 # SETUP PERMISSIONS
 #=================================================
+
 ynh_script_progression --message="Configuring permissions..." --weight=1
-ynh_legacy_permissions_delete_all
 
-ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
-ynh_permission_update --permission=main --show_tile=false --protected=true
-
-if ! ynh_permission_exists --permission=server_api; then
-    ynh_permission_create --permission=server_api --url=$domain/_matrix \
-                          --label="Server access for client apps." --show_tile=false --allowed=visitors \
-                          --auth_header=false --protected=true
-    python3 remove_sso_conf_persistent.py $domain $server_name \
-        || ynh_print_warn --message="Your file /etc/ssowat/""conf.json.persistent doesn't respect the json syntax. The config file wasn't cleaned. Please clean it manually."
-else
-    ynh_permission_url --permission=server_api --url=$domain/_matrix --remove_url=$server_name/.well-known/matrix \
-                       --auth_header=false
-    ynh_permission_update --permission=server_api --label="Server access for client apps." --show_tile=false \
-                          --protected=true
-fi
-
-if yunohost --output-as plain domain list | grep -q "^$server_name"'$' && ! ynh_permission_exists --permission=server_client_infos; then
-    ynh_permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
-                          --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
-                          --auth_header=false --protected=true
-elif yunohost --output-as plain domain list | grep -q "^$server_name"'$'; then
-    ynh_permission_url --permission=server_client_infos --url=$server_name/.well-known/matrix \
-                       --auth_header=false
-    ynh_permission_update --permission=server_client_infos --label="Server info for clients. (well-known)" --show_tile=false \
-                          --protected=true
-fi
-
-if ! ynh_permission_exists --permission=admin_api; then
-    ynh_permission_create --permission=admin_api --url=$domain/_synapse \
-                          --label="Server administration API." --show_tile=false \
-                          --auth_header=false --allowed=visitors
+if yunohost --output-as plain domain list | grep -q "^$server_name"'$'; then
+    if ! ynh_""permission_exists --permission=server_client_infos; then
+        ynh_""permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
+                              --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
+                              --auth_header=false --protected=true
+    else yunohost --output-as plain domain list | grep -q "^$server_name"'$'
+        ynh_""permission_url --permission=server_client_infos --url=$server_name/.well-known/matrix \
+                          --auth_header=false
+        ynh_""permission_update --permission=server_client_infos --label="Server info for clients. (well-known)" --show_tile=false \
+                              --protected=true
+    fi
 fi
 
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
-# For any update do it in all files
-chown $synapse_user:root -R $final_path
-chmod 770 $final_path/Coturn_config_rotate.sh
-chmod 700 $final_path/update_synapse_for_appservice.sh
-chown $synapse_user:root -R $data_path
-chown $synapse_user:root -R /var/log/matrix-$app
-chown $synapse_user:root -R /etc/matrix-$app
-chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/$server_name.signing.key
-setfacl -R -m user:turnserver:rX  /etc/matrix-$app
-setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+ynh_script_progression --message="Protecting directories... (note that it could take a long time depending of your install size)" --weight=3
+set_permissions data
 
 #=================================================
 # UPDATE HOOKS
@@ -680,18 +510,12 @@ ynh_replace_string __APP__ $app ../hooks/post_cert_update
 ynh_replace_string __DOMAIN__ $domain ../hooks/post_cert_update
 
 #=================================================
-# UPDATE VERSION SETTINGS
-#=================================================
-
-ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
-
-#=================================================
 # RELOAD SERVICES
 #=================================================
 ynh_script_progression --message="Restarting Synapse services..." --weight=5
 
-ynh_systemd_action --service_name=coturn-$app.service --action=restart
-ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $synapse_tls_port" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
+ynh_systemd_action --service_name=$app-coturn.service --action=restart
+ynh_systemd_action --service_name=$app.service --action=restart --line_match="Synapse now listening on TCP port $port_synapse_tls" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
 
 #=================================================
 # END OF SCRIPT

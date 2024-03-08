@@ -1,15 +1,17 @@
 [Unit]
 Description=Coturn
 Documentation=man:coturn(1) man:turnadmin(1) man:turnserver(1)
-After=syslog.target network.target
+After=syslog.target network-online.target
 
 [Service]
 User=turnserver
 Group=turnserver
-Type=simple
+Type=notify
 EnvironmentFile=/etc/default/coturn-__APP__
 ExecStart=/usr/bin/turnserver -c /etc/matrix-__APP__/coturn.conf $EXTRA_OPTIONS --pidfile=
-Restart=on-abort
+Restart=on-failure
+InaccessibleDirectories=/home
+PrivateTmp=yes
 
 LimitCORE=infinity
 LimitNOFILE=999999
