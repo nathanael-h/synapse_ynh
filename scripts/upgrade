@@ -334,7 +334,8 @@ if yunohost app map -r --output-as json | jq -r '."'$domain'" | select( . != nul
     ynh_print_warn 'An other app is installed on this domain. Now synapse require to be alone on the domain.'
     ynh_print_warn 'To solve this you can:'
     ynh_print_warn " - Remove or move all other app which use '$domain'"
-    ynh_print_warn ' - Change the domain of synapse. You can find more informations here: https://github.com/YunoHost-Apps/synapse_ynh/blob/ce38d582ea379f60574a438056893cac79525808/doc/ADMIN.md#change-url'
+    ynh_print_warn ' - Change the domain of synapse. You can find more informations here: https://github.com/YunoHost-Apps/synapse_ynh/tree/testing/doc/ADMIN.md#change-url'
+    ynh_print_warn 'For more information you can see this issue: https://github.com/YunoHost-Apps/synapse_ynh/issues/443'
 fi
 
 #=================================================
