@@ -63,13 +63,13 @@ ram.runtime = "200M"
 [resources]
     [resources.sources.synapse_prebuilt_armv7_bookworm]
     prefetch = false
-    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.102.0/matrix-synapse_1.102.0-bookworm-bin1_armv7l.tar.gz"
-    armhf.sha256 = "5fd5296d76675cd7a109115e1eb035758c16b095cd953a65fc8cc840fb449e40"
+    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.102.0/matrix-synapse_1.102.0-bookworm-bin2_armv7l.tar.gz"
+    armhf.sha256 = "4027b8e41950aeec151dfa19eda2402e7974de56d33abb9eee3879e211227eef"
 
     [resources.sources.synapse_prebuilt_armv7_bullseye]
     prefetch = false
-    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.102.0/matrix-synapse_1.102.0-bullseye-bin1_armv7l.tar.gz"
-    armhf.sha256 = "4027b8e41950aeec151dfa19eda2402e7974de56d33abb9eee3879e211227eef"
+    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.102.0/matrix-synapse_1.102.0-bullseye-bin2_armv7l.tar.gz"
+    armhf.sha256 = "5fd5296d76675cd7a109115e1eb035758c16b095cd953a65fc8cc840fb449e40"
 
     [resources.system_user]
     allow_email = true
