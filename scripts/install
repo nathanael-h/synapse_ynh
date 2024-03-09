@@ -43,7 +43,7 @@ notif_for_new_users="true"
 enable_group_creation="true"
 push_include_content="true"
 enable_3pid_lookup=false
-enable_dtls_for_audio_video_turn_call=true
+enable_dtls_for_audio_video_turn_call=false
 
 if [ "$is_free_registration" -eq 0 ]
 then
