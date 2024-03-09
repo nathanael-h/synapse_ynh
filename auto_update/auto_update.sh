@@ -78,7 +78,7 @@ upgrade_synapse() {
 push_armv7_build() {
     ## Make a draft release json with a markdown body
     local release='"tag_name": "v'$synapse_version'", "target_commitish": "master", "name": "v'$synapse_version'", '
-    local body="Synapse prebuilt bin for synapse_ynh\\n=========\\nPlease refer to upstream project for the change : https://github.com/element-hq/synapse/releases\\n\\nSha256sum for $debian_version_name_1 : $(cat $build_result_path_deb_1/SUM_matrix-synapse_${synapse_version}-$debian_version_name_1-bin1_armv7l.tar.gz)\\nSha256sum for $debian_version_name_2 : $(cat $build_result_path_deb_2/SUM_matrix-synapse_${synapse_version}-$debian_version_name_2-bin1_armv7l.tar.gz)"
+    local body="Synapse prebuilt bin for synapse_ynh\\n=========\\nPlease refer to upstream project for the change : https://github.com/element-hq/synapse/releases\\n\\nSha256sum for $debian_version_name_1 : $(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)\\nSha256sum for $debian_version_name_2 : $(cat $build_result_path_deb_2/${result_prefix_name_deb_2}-bin1_armv7l-sha256.txt)"
     release+='"body": "'$body'",'
     release+='"draft": true, "prerelease": false'
     release='{'$release'}'

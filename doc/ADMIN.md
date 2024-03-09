@@ -129,7 +129,7 @@ Then, to log in the API with your credentials, you need to set your user as admi
 
 ### Change url
 
-Synapse give the possibility to change the domain of the instance. Note that this will only change the domain on which the synapse server will run. **This won't change the domain name of the account which an other thing.**
+Synapse give the possibility to change the domain of the instance. Note that this will only change the domain on which the synapse server will run. **This won't change the domain name of the account which is an other thing.**
 
 The advantage of this is that you can put the app on a specific domain without impacting the domain name of the accounts. For instance you can have the synapse app on `matrix.yolo.net` and the user account will be something like that `@michu:yolo.net`. Note that it's the main difference between the domain of the app (which is `matrix.yolo.net`) and the "server name" which is `yolo.net`.
 

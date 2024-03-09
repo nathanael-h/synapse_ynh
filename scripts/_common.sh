@@ -104,9 +104,9 @@ configure_synapse() {
     fi
     local turn_server_config=""
     if $enable_dtls_for_audio_video_turn_call; then
-        turn_server_config='turn_uris: [ "stuns:'$domain:$port_turnserver_tls'?transport=dtls", "stuns:'$domain:$port_turnserver_tls'?transport=tls", "turns:'$domain:$port_turnserver_tls'?transport=dtls", "turns:'$domain:$port_turnserver_tls'?transport=tls" ]'
+        turn_server_config='turn_uris: [ "turns:'$domain:$port_turnserver_tls'", "turns:'$domain:$port_turnserver_alt_tls'" ]'
     else
-        turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'?transport=udp", "turn:'$domain:$port_turnserver_tls'?transport=tcp" ]'
+        turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'", "turn:'$domain:$port_turnserver_alt_tls'" ]'
     fi
 
     ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
