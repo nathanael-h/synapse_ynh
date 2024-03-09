@@ -128,8 +128,13 @@ configure_coturn() {
     then
         turn_external_ip+="external-ip=$public_ip6\\n"
     fi
+    local turn_clear_com_param=''
+    if $enable_dtls_for_audio_video_turn_call; then
+        turn_clear_com_param+='# Block clear communication\nno-udp\nno-tcp'
+    fi
 
     ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
+    sed -i "s|_TURN_CLEAR_COM_PARAM_|$turn_clear_com_param|g" /etc/matrix-$app/coturn.conf
     sed -i "s|_TURN_EXTERNAL_IP_|$turn_external_ip|g" /etc/matrix-$app/coturn.conf
     ynh_store_file_checksum --file=/etc/matrix-$app/coturn.conf
 }
