@@ -201,7 +201,7 @@ then
 fi
 if [ -z "${enable_dtls_for_audio_video_turn_call:-}" ]
 then
-    enable_dtls_for_audio_video_turn_call=false
+    enable_dtls_for_audio_video_turn_call=true
     ynh_app_setting_set --app=$app --key=enable_dtls_for_audio_video_turn_call --value=$enable_dtls_for_audio_video_turn_call
 fi
 
