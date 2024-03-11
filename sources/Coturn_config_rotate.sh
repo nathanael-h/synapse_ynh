@@ -9,6 +9,7 @@ pushd /etc/yunohost/apps/$app/conf
 source /usr/share/yunohost/helpers
 source ../scripts/_common.sh
 
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 port_cli=$(ynh_app_setting_get --app=$app --key=port_cli)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
