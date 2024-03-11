@@ -2,6 +2,8 @@
 
 set -eu
 
+readonly app_name=synapse
+
 source auto_update_config.sh
 
 readonly debian_version_name_1=bullseye
@@ -21,20 +23,20 @@ EOL
     echo $result | jq -r "$1"
 }
 
-check_synapse() {
-    synapse_remote_version=$(curl 'https://api.github.com/repos/element-hq/synapse/releases/latest' -H 'Host: api.github.com' --compressed | jq -r ".tag_name" | cut -dv -f2)
+check_app_version() {
+    local app_remote_version=$(curl 'https://api.github.com/repos/element-hq/synapse/releases/latest' -H 'Host: api.github.com' --compressed | jq -r ".tag_name" | cut -dv -f2)
 
     ## Check if new build is needed
-    if [[ "$synapse_version" != "$synapse_remote_version" ]]
+    if [[ "$app_version" != "$app_remote_version" ]]
     then
-        synapse_version="$synapse_remote_version"
+        app_version="$app_remote_version"
         return 0
     else
         return 1
     fi
 }
 
-upgrade_synapse() {
+upgrade_app() {
     (
         set -eu
 
@@ -42,12 +44,12 @@ upgrade_synapse() {
         # arm build: ${result_prefix_name_deb_1}-bin1_armv7l.tar.gz
         # arm build checksum: ${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt
         # requirement.txt: ${result_prefix_name_deb_1}-build1_requirement.txt
-        readonly result_prefix_name_deb_1="matrix-synapse_${synapse_version}-$debian_version_name_1"
-        readonly result_prefix_name_deb_2="matrix-synapse_${synapse_version}-$debian_version_name_2"
+        readonly result_prefix_name_deb_1="matrix-synapse_${app_version}-$debian_version_name_1"
+        readonly result_prefix_name_deb_2="matrix-synapse_${app_version}-$debian_version_name_2"
 
         # Build armv7 build
-        build_cmd_deb_1 $synapse_version $result_prefix_name_deb_1
-        build_cmd_deb_2 $synapse_version $result_prefix_name_deb_2
+        build_cmd_deb_1 $app_version $result_prefix_name_deb_1
+        build_cmd_deb_2 $app_version $result_prefix_name_deb_2
         push_armv7_build
 
         # Update python requirement
@@ -55,30 +57,30 @@ upgrade_synapse() {
         cp "$build_result_path_deb_2/${result_prefix_name_deb_2}"-build1_requirement.txt ../conf/requirement_"$debian_version_name_2".txt
 
         # Update manifest
-        sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh1"|version = "'${synapse_version}'~ynh1"|' ../manifest.toml
+        sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh1"|version = "'${app_version}'~ynh1"|' ../manifest.toml
 
         # Update this link
-        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
-        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_2-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${synapse_version}/matrix-synapse_${synapse_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_2-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
 
         # Update checksum
         sha256sum_arm_archive_deb_1=$(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)
         sha256sum_arm_archive_deb_2=$(cat $build_result_path_deb_2/${result_prefix_name_deb_2}-bin1_armv7l-sha256.txt)
-        prev_sha256sum_arm_archive_deb_1=$(get_from_manifest ".resources.sources.synapse_prebuilt_armv7_$debian_version_name_1.armhf.sha256")
-        prev_sha256sum_arm_archive_deb_2=$(get_from_manifest ".resources.sources.synapse_prebuilt_armv7_$debian_version_name_2.armhf.sha256")
+        prev_sha256sum_arm_archive_deb_1=$(get_from_manifest ".resources.sources.${app_name}_prebuilt_armv7_$debian_version_name_1.armhf.sha256")
+        prev_sha256sum_arm_archive_deb_2=$(get_from_manifest ".resources.sources.${app_name}_prebuilt_armv7_$debian_version_name_2.armhf.sha256")
         sed -r -i "s|$prev_sha256sum_arm_archive_deb_1|$sha256sum_arm_archive_deb_1|" ../manifest.toml
         sed -r -i "s|$prev_sha256sum_arm_archive_deb_2|$sha256sum_arm_archive_deb_2|" ../manifest.toml
 
-        git commit -a -m "Upgrade synapse to $synapse_version"
+        git commit -a -m "Upgrade $app_name to $app_version"
         git push gitea auto_update:auto_update
-    ) 2>&1 | tee "synapse_build_temp.log"
+    ) 2>&1 | tee "${app_name}_build_temp.log"
     return ${PIPESTATUS[0]}
 }
 
 push_armv7_build() {
     ## Make a draft release json with a markdown body
-    local release='"tag_name": "v'$synapse_version'", "target_commitish": "master", "name": "v'$synapse_version'", '
-    local body="Synapse prebuilt bin for synapse_ynh\\n=========\\nPlease refer to upstream project for the change : https://github.com/element-hq/synapse/releases\\n\\nSha256sum for $debian_version_name_1 : $(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)\\nSha256sum for $debian_version_name_2 : $(cat $build_result_path_deb_2/${result_prefix_name_deb_2}-bin1_armv7l-sha256.txt)"
+    local release='"tag_name": "v'$app_version'", "target_commitish": "master", "name": "v'$app_version'", '
+    local body="$app_name prebuilt bin for ${app_name}_ynh\\n=========\\nPlease refer to upstream project for the change : https://github.com/element-hq/synapse/releases\\n\\nSha256sum for $debian_version_name_1 : $(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)\\nSha256sum for $debian_version_name_2 : $(cat $build_result_path_deb_2/${result_prefix_name_deb_2}-bin1_armv7l-sha256.txt)"
     release+='"body": "'$body'",'
     release+='"draft": true, "prerelease": false'
     release='{'$release'}'
@@ -148,12 +150,12 @@ push_armv7_build() {
     done
 }
 
-synapse_version=$(get_from_manifest ".version" |  cut -d'~' -f1)
+app_version=$(get_from_manifest ".version" |  cut -d'~' -f1)
 
-if check_synapse
+if check_app_version
 then
     set +eu
-    upgrade_synapse
+    upgrade_app
     res=$?
     set -eu
     if [ $res -eq 0 ]; then
@@ -161,7 +163,7 @@ then
     else
         result="Failed"
     fi
-    msg="Build: synapse version $synapse_version\n"
-    msg+="$(cat synapse_build_temp.log)"
-    echo -e "$msg" | mail.mailutils -a "Content-Type: text/plain; charset=UTF-8" -s "Autoupgrade synapse : $result" "$notify_email"
+    msg="Build: $app_name version $app_version\n"
+    msg+="$(cat ${app_name}_build_temp.log)"
+    echo -e "$msg" | mail.mailutils -a "Content-Type: text/plain; charset=UTF-8" -s "Autoupgrade $app_name : $result" "$notify_email"
 fi
