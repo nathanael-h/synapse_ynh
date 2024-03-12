@@ -57,7 +57,7 @@ upgrade_app() {
         cp "$build_result_path_deb_2/${result_prefix_name_deb_2}"-build1_requirement.txt ../conf/requirement_"$debian_version_name_2".txt
 
         # Update manifest
-        sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh1"|version = "'${app_version}'~ynh1"|' ../manifest.toml
+        sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh[[:alnum:].]{1,2}"|version = "'${app_version}'~ynh1"|' ../manifest.toml
 
         # Update this link
         sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
