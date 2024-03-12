@@ -6,10 +6,13 @@ app=__APP__
 YNH_APP_BASEDIR=/etc/yunohost/apps/"$app"
 
 pushd /etc/yunohost/apps/$app/conf
+
 source /usr/share/yunohost/helpers
+
+# Must load db_name var to load _common.sh
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 source ../scripts/_common.sh
 
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 port_cli=$(ynh_app_setting_get --app=$app --key=port_cli)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
