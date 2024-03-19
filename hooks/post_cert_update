@@ -1,5 +1,5 @@
 #!/bin/bash
 
 if [ $1 == __DOMAIN__ ]; then
-    systemctl restart matrix-__APP__
+    systemctl restart __APP__.service
 fi
