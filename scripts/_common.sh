@@ -109,6 +109,9 @@ configure_synapse() {
         turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'", "turn:'$domain:$port_turnserver_alt_tls'" ]'
     fi
 
+    # Force enable it because some client like Element X don't support CAS and so require to have password authentication enabled
+    password_enabled=true
+
     ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
     sed -i "s|_DOMAIN_WHITELIST_CLIENT_|$domain_whitelist_client|g" /etc/matrix-$app/homeserver.yaml
     sed -i "s|_AUTO_JOIN_ROOMS_SED_PARAM_|$auto_join_rooms_sed_param|g" /etc/matrix-$app/homeserver.yaml
