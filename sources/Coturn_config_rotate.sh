@@ -3,6 +3,7 @@
 set -eu
 
 app=__APP__
+YNH_APP_BASEDIR=/etc/yunohost/apps/"$app"
 
 pushd /etc/yunohost/apps/$app/conf
 source /usr/share/yunohost/helpers
@@ -13,6 +14,7 @@ port_cli=$(ynh_app_setting_get --app=$app --key=port_cli)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 port_turnserver_tls=$(ynh_app_setting_get --app=$app --key=port_turnserver_tls)
 port_turnserver_alt_tls=$(ynh_app_setting_get --app=$app --key=port_turnserver_alt_tls)
+enable_dtls_for_audio_video_turn_call=$(ynh_app_setting_get --app=$app --key=enable_dtls_for_audio_video_turn_call)
 
 previous_checksum=$(ynh_app_setting_get --app=$app --key=checksum__etc_matrix-synapse_coturn.conf)
 configure_coturn
