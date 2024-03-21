@@ -60,8 +60,8 @@ upgrade_app() {
         sed -r -i 's|version = "[[:alnum:].]{4,8}~ynh[[:alnum:].]{1,2}"|version = "'${app_version}'~ynh1"|' ../manifest.toml
 
         # Update this link
-        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_1-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
-        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,8}/matrix-synapse_[[:alnum:].]{4,8}-$debian_version_name_2-bin1_armv7l.tar.gz|arm.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,10}/matrix-synapse_[[:alnum:].]{4,10}-$debian_version_name_1-bin[[:digit:]]_armv7l.tar.gz|armhf.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_1-bin1_armv7l.tar.gz|"  ../manifest.toml
+        sed -r -i "s|armhf.url\s*=(.*)/releases/download/v[[:alnum:].]{4,10}/matrix-synapse_[[:alnum:].]{4,10}-$debian_version_name_2-bin[[:digit:]]_armv7l.tar.gz|armhf.url =\1/releases/download/v${app_version}/matrix-synapse_${app_version}-$debian_version_name_2-bin1_armv7l.tar.gz|"  ../manifest.toml
 
         # Update checksum
         sha256sum_arm_archive_deb_1=$(cat $build_result_path_deb_1/${result_prefix_name_deb_1}-bin1_armv7l-sha256.txt)
