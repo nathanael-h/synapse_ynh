@@ -7,7 +7,7 @@ After=syslog.target network-online.target
 User=turnserver
 Group=turnserver
 Type=notify
-EnvironmentFile=/etc/default/coturn-__APP__
+EnvironmentFile=/etc/matrix-__APP__/coturn_env
 ExecStart=/usr/bin/turnserver -c /etc/matrix-__APP__/coturn.conf $EXTRA_OPTIONS --pidfile=
 Restart=on-failure
 InaccessibleDirectories=/home

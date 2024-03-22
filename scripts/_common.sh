@@ -46,9 +46,10 @@ install_sources() {
     fi
 
     # Apply patch for LDAP auth if needed
+    # Note that we put patch into scripts dir because /source are not stored and can't be used on restore
     if ! grep -F -q '# LDAP Filter anonymous user Applied' $code_dir/lib/python$python_version/site-packages/ldap_auth_provider.py; then
         pushd $code_dir/lib/python$python_version/site-packages
-        patch < $YNH_APP_BASEDIR/sources/ldap_auth_filter_anonymous_user.patch
+        patch < $YNH_APP_BASEDIR/scripts/patch/ldap_auth_filter_anonymous_user.patch
         popd
     fi
 

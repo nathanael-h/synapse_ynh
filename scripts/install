@@ -196,7 +196,7 @@ ynh_script_progression --message="Configuring a systemd service..." --weight=2
 # Create systemd service for synapse and turnserver
 ynh_add_systemd_config --service=$app --template=synapse.service
 
-cp ../conf/default_coturn /etc/default/coturn-$app
+cp ../conf/default_coturn /etc/matrix-$app/coturn_env
 ynh_add_systemd_config --service=$app-coturn --template=synapse-coturn.service
 
 ynh_add_systemd_config --service=$app-sliding-proxy --template=synapse-sliding-proxy.service

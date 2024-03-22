@@ -1,17 +1,26 @@
-# Installation
-
-## Install for ARM arch (or slow arch)
-
-For all slow or arm architecture it's recommended to build the dh file before the install to have a quicker install.
-You could build it by this cmd : `openssl dhparam -out /etc/ssl/private/dh2048.pem 2048 > /dev/null`
-After that you can install it without problem.
-
-The package uses a prebuilt python virtual environnement. The binary are taken from this repository: https://github.com/YunoHost-Apps/synapse_python_build
-The script to build the binary is also available.
-
 ## Web client
 
-If you want a web client you can also install Element with this package: https://github.com/YunoHost-Apps/element_ynh .
+The most well-known Matrix web client is Element, which is available in the YunoHost app catalog: <https://github.com/YunoHost-Apps/element_ynh>.
+
+### Important Security Note
+
+We do not recommend running Element from the same domain name as your Matrix homeserver (synapse).  The reason is the risk of XSS (cross-site-scripting) vulnerabilities that could occur if someone caused Element to load and render malicious user generated content from a Matrix API which then had trusted access to Element (or other apps) due to sharing the same domain.
+
+We have put some coarse mitigations into place to try to protect against this situation, but it's still not a good practice to do it in the first place. See https://github.com/vector-im/element-web/issues/1977 for more details.
+
+## Admin UI
+
+You may be interested in the synapse-admin app,  which provides an administration interface for synapse:  <https://github.com/YunoHost-Apps/synapse-admin_ynh>.
+
+Then, to log in the API with your admin credentials (cf next section)
+
+### Set user as admin
+
+Currently, the client interface doesn't allow to grant admin rights. The workaround is to enable it manually in the database. The YunoHost app provides a small script to do so, which can be invoked:
+
+```bash
+/opt/yunohost/matrix-__APP__/set_admin_user.sh '@user_to_be_admin:domain.tld'
+```
 
 ## Access by federation
 
@@ -63,7 +72,7 @@ If you have a dynamic IP address, you also might need to update this config auto
 
 ## OpenVPN
 
-In case of you have an OpenVPN server you might want than `synapse-coturn` restart when the VPN restart. To do this create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
+If your server is behind a VPN, you may want `synapse-coturn` ti automatically restart when the VPN restarts. To do this, create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
 ```bash
 #!/bin/bash
 
@@ -84,50 +93,31 @@ And add this line in your OpenVPN config file
 ipchange /usr/local/bin/openvpn_up_script.sh
 ```
 
-## Important Security Note
+## Backup
 
-We do not recommend running Element from the same domain name as your Matrix
-homeserver (synapse).  The reason is the risk of XSS (cross-site-scripting)
-vulnerabilities that could occur if someone caused Element to load and render
-malicious user generated content from a Matrix API which then had trusted
-access to Element (or other apps) due to sharing the same domain.
+Before any major maintenance action, it is recommended to backup the app.
 
-We have put some coarse mitigations into place to try to protect against this
-situation, but it's still not a good practice to do it in the first place. See
-https://github.com/vector-im/element-web/issues/1977 for more details.
+To ensure the integrity of the data, it is recommended to explictly stop the server during the backup:
 
-## Limitations
-
-Synapse uses a lot of ressource. So on slow architecture (like small ARM board), this app could take a lot of CPU and RAM.
-
-This app doesn't provide any real good web interface. So it's recommended to use Element client to connect to this app. This app is available [here](https://github.com/YunoHost-Apps/element_ynh)
-
-# Additional information
-
-## Administration
-
-**All documentation of this section is not warranted. A bad use of command could break the app and all the data. So use these commands at your own risk.**
-
-Before any manipulation it's recommended to do a backup by this following command :
-
-`sudo yunohost backup create --apps synapse`
-
-### Set user as admin
-
-Actually there are no functions in the client interface to set a user as admin. So it's possible to enable it manually in the database.
-
-The following command will grant admin privilege to the specified user:
+- Stop synapse service with theses following command:
 ```bash
-/opt/yunohost/matrix-<synapse_instance_name>/set_admin_user.sh '@user_to_be_admin:domain.tld'
+systemctl stop synapse.service
 ```
 
-### Administration API
+- Launch the backup of synapse with this following command:
+```bash
+yunohost backup create --app synapse
+```
 
-There are an admiminstration application available if needed for example to use [Synapse Admin](https://github.com/YunoHost-Apps/synapse-admin_ynh).
+- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/synapse`.
+- Restart the synapse service with these command:
+```bash
+systemctl start synapse.service
+```
 
-Then, to log in the API with your credentials, you need to set your user as admin (cf. precedent section).
+## Changing the server URL
 
-### Change url
+**All documentation of this section is not warranted. A bad use of command could break the app and all the data. So use these commands at your own risk.**
 
 Synapse give the possibility to change the domain of the instance. Note that this will only change the domain on which the synapse server will run. **This won't change the domain name of the account which is an other thing.**
 
@@ -141,16 +131,16 @@ The advantage of this is that you can put the app on a specific domain without i
 To do the change url of synapse you can do it by this following command or with the webadmin.
 
 ```bash
-yunohost app change-url synapse
+sudo yunohost app change-url synapse
 ```
 
-#### Avoid the need to reconnect all client after change-url operation
+### Avoid the need to reconnect all client after change-url operation
 
-In case of you have changed the url of synapse and you don't wan't to reconnect all client there are this workaround which should solve the issue.
+If you did change the url of synapse and you don't wan't to reconnect all client, this workaround should solve the issue.
 
 The idea is to setup again a minimal configuration on the previous domain so the client configurated with the previous domain will still work correctly.
 
-##### Nginx config
+#### Nginx config
 
 Retrive the server port with this command:
 ```bash
@@ -174,35 +164,13 @@ Then reload nginx config:
 systemctl reload nginx.service
 ```
 
-##### Add permanent rule on SSOWAT
+#### Add permanent rule on SSOWAT
 
 - Edit the file `/etc/ssowat/conf.json.persistent`
 - Add `"<previous-domain.tld>/_matrix"` into the list in: `permissions` > `custom_skipped` > `uris`
 
 Now the configured client before the change-url should work again.
 
-### Backup
+## Removing the app
 
-This app use now the core-only feature of the backup. To keep the integrity of the data and to have a better guarantee of the restoration is recommended to proceed like this:
-
-- Stop synapse service with theses following command:
-```bash
-systemctl stop synapse.service
-```
-
-- Launch the backup of synapse with this following command:
-```bash
-yunohost backup create --app synapse
-```
-
-- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/synapse`.
-- Restart the synapse service with these command:
-```bash
-systemctl start synapse.service
-```
-
-### Remove
-
-Due of the backup core only feature the data directory in `/home/yunohost.app/synapse` **is not removed**.
-
-Use the `--purge` flag with the command, or remove it manually to purge app user data.
+The YunoHost policy is to not remove the data when removing an app (stored in `/home/yunohost.app/synapse`). Use the `--purge` flag during the removal of the app to remove those, or just manually delete the folder after the app is deleted.

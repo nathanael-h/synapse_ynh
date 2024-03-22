@@ -210,6 +210,9 @@ then
     ynh_app_setting_set --app=$app --key=sync_proxy_secret --value=$sync_proxy_secret
 fi
 
+# remove legacy env file into /etc/default
+ynh_secure_remove --file=/etc/default/coturn-$app
+
 #=================================================
 # MIGRATION 7 : STANDARDIZE SYSTEMD UNIT
 #=================================================
@@ -479,7 +482,7 @@ ynh_script_progression --message="Upgrading systemd configuration..." --weight=3
 # Create systemd service for synapse and turnserver
 ynh_add_systemd_config --service=$app --template=synapse.service
 
-cp ../conf/default_coturn /etc/default/coturn-$app
+cp ../conf/default_coturn /etc/matrix-$app/coturn_env
 ynh_add_systemd_config --service=$app-coturn --template=synapse-coturn.service
 
 ynh_add_systemd_config --service=$app-sliding-proxy --template=synapse-sliding-proxy.service
