@@ -1,5 +1,6 @@
-python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
-code_dir="/opt/yunohost/matrix-$app"
+readonly python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
+readonly code_dir="/opt/yunohost/matrix-$app"
+readonly domain_whitelist_client="$(yunohost --output-as json domain list  | jq -r '.domains | .[]')"
 
 install_sources() {
     # Install/upgrade synapse in virtualenv
@@ -52,13 +53,6 @@ install_sources() {
         patch < $YNH_APP_BASEDIR/scripts/patch/ldap_auth_filter_anonymous_user.patch
         popd
     fi
-}
-
-configure_synapse() {
-    local domain_whitelist_client=$(yunohost --output-as json domain list  | jq -r '.domains | .[]')
-
-    ynh_add_jinja_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
-    ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 }
 
 configure_coturn() {
