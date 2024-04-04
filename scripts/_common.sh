@@ -55,61 +55,9 @@ install_sources() {
 }
 
 configure_synapse() {
-    local domain_whitelist_client=$(yunohost --output-as plain domain list \
-        | grep -E "^#" -v \
-        | sort | uniq \
-        | sed -r 's|^(.*)$|      - \1|' \
-        | sed -z 's|\n|\\n|g')
-    local macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-    local auto_join_rooms_sed_param=""
-    if [ -n "$auto_join_rooms" ]; then
-        auto_join_rooms_sed_param+='auto_join_rooms:'
-        while read -d, room; do
-            auto_join_rooms_sed_param+='\n  - "'$room'"'
-        done <<< "${auto_join_rooms},"
-    fi
-    local registration_require_3pid_sed_param=""
-    case ${registrations_require_3pid} in
-        'email')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - email"
-            ;;
-        'msisdn')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - msisdn"
-            ;;
-        'email&msisdn')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - email\n  - msisdn"
-            ;;
-    esac
+    local domain_whitelist_client=$(yunohost --output-as json domain list  | jq -r '.domains | .[]')
 
-    local allowd_local_3pids_sed_param=""
-    if [ -n "$allowed_local_3pids_email" ] || [ -n "$allowed_local_3pids_msisdn" ]; then
-        allowd_local_3pids_sed_param="allowed_local_3pids:"
-
-        if [ -n "$allowed_local_3pids_email" ]; then
-            while read -d, pattern ; do
-                allowd_local_3pids_sed_param+="\n  - medium: email\n    pattern: '$pattern'"
-            done <<< "${allowed_local_3pids_email},"
-        fi
-        if [ -n "$allowed_local_3pids_msisdn" ]; then
-            while read -d, pattern ; do
-                allowd_local_3pids_sed_param+="\n  - medium: msisdn\n    pattern: '$pattern'"
-            done <<< "${allowed_local_3pids_msisdn},"
-        fi
-    fi
-    local turn_server_config=""
-    if $enable_dtls_for_audio_video_turn_call; then
-        turn_server_config='turn_uris: [ "turns:'$domain:$port_turnserver_tls'", "turns:'$domain:$port_turnserver_alt_tls'" ]'
-    else
-        turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'", "turn:'$domain:$port_turnserver_alt_tls'" ]'
-    fi
-
-    ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
-    sed -i "s|_DOMAIN_WHITELIST_CLIENT_|$domain_whitelist_client|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_AUTO_JOIN_ROOMS_SED_PARAM_|$auto_join_rooms_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_REGISTRATION_REQUIRE_3PID_SED_PARAM_|$registration_require_3pid_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_ALLOWD_LOCAL_3PIDS_SED_PARAM_|$allowd_local_3pids_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    ynh_store_file_checksum --file=/etc/matrix-$app/homeserver.yaml
-
+    ynh_add_jinja_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
     ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 }
 
@@ -122,22 +70,13 @@ configure_coturn() {
     local turn_external_ip=""
     if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
     then
-        turn_external_ip+="external-ip=$public_ip4\\n"
+        turn_external_ip+="$public_ip4,"
     fi
-
     if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
     then
-        turn_external_ip+="external-ip=$public_ip6\\n"
+        turn_external_ip+="$public_ip6"
     fi
-    local turn_clear_com_param=''
-    if $enable_dtls_for_audio_video_turn_call; then
-        turn_clear_com_param+='# Block clear communication\nno-udp\nno-tcp'
-    fi
-
-    ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
-    sed -i "s|_TURN_CLEAR_COM_PARAM_|$turn_clear_com_param|g" /etc/matrix-$app/coturn.conf
-    sed -i "s|_TURN_EXTERNAL_IP_|$turn_external_ip|g" /etc/matrix-$app/coturn.conf
-    ynh_store_file_checksum --file=/etc/matrix-$app/coturn.conf
+    ynh_add_jinja_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
 }
 
 configure_nginx() {

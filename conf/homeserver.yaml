@@ -45,15 +45,15 @@ modules:
 # lowercase and may contain an explicit port.
 # Examples: matrix.org, localhost:8080
 #
-server_name: "__SERVER_NAME__"
+server_name: "{{ server_name }}"
 
 # When running as a daemon, the file to store the pid in
 #
-pid_file: /run/matrix-__APP__/homeserver.pid
+pid_file: /run/matrix-{{ app }}/homeserver.pid
 
 # The absolute URL to the web client which / will redirect to.
 #
-web_client_location: __WEB_CLIENT_LOCATION__
+web_client_location: {{ web_client_location }}
 
 # The public-facing base URL that clients use to access this Homeserver (not
 # including _matrix/...). This is the same URL a user might enter into the
@@ -64,7 +64,7 @@ web_client_location: __WEB_CLIENT_LOCATION__
 #
 # Defaults to 'https://<server_name>/'.
 #
-public_baseurl: https://__DOMAIN__/
+public_baseurl: https://{{ domain }}/
 
 # Uncomment the following to tell other servers to send federation traffic on
 # port 443.
@@ -125,12 +125,12 @@ presence:
 # public rooms directory through the client API, meaning that anyone can
 # query the room directory. Defaults to 'false'.
 #
-allow_public_rooms_without_auth: __ALLOW_PUBLIC_ROOMS_WITHOUT_AUTH__
+allow_public_rooms_without_auth: {{ allow_public_rooms_without_auth }}
 
 # If set to 'true', allows any other homeserver to fetch the server's public
 # rooms directory via federation. Defaults to 'false'.
 #
-allow_public_rooms_over_federation: __ALLOW_PUBLIC_ROOMS_OVER_FEDERATION__
+allow_public_rooms_over_federation: {{ allow_public_rooms_over_federation }}
 
 # The default room version for newly created rooms.
 #
@@ -288,7 +288,7 @@ listeners:
   # will also need to give Synapse a TLS key and certificate: see the TLS section
   # below.)
   #
-  - port: __PORT_SYNAPSE_TLS__
+  - port: {{ port_synapse_tls }}
     type: http
     tls: true
     resources:
@@ -300,7 +300,7 @@ listeners:
   # If you plan to use a reverse proxy, please see
   # https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
   #
-  - port: __PORT_SYNAPSE__
+  - port: {{ port_synapse }}
     tls: false
     type: http
     x_forwarded: true
@@ -613,11 +613,11 @@ admin_contact: 'mailto:root'
 # any intermediate certificates (for instance, if using certbot, use
 # `fullchain.pem` as your certificate, not `cert.pem`).
 #
-tls_certificate_path: "/etc/yunohost/certs/__DOMAIN__/crt.pem"
+tls_certificate_path: "/etc/yunohost/certs/{{ domain }}/crt.pem"
 
 # PEM-encoded private key for TLS
 #
-tls_private_key_path: "/etc/yunohost/certs/__DOMAIN__/key.pem"
+tls_private_key_path: "/etc/yunohost/certs/{{ domain }}/key.pem"
 
 # Whether to verify TLS server certificates for outbound federation requests.
 #
@@ -804,9 +804,9 @@ database:
  name: psycopg2
  #txn_limit: 10000
  args:
-   user: __DB_USER__
-   password: __DB_PWD__
-   database: __DB_NAME__
+   user: {{ db_user }}
+   password: {{ db_pwd }}
+   database: {{ db_name }}
    host: localhost
    port: 5432
    cp_min: 5
@@ -826,7 +826,7 @@ database:
 # A yaml python logging config file as described by
 # https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema
 #
-log_config: "/etc/matrix-__APP__/log.yaml"
+log_config: "/etc/matrix-{{ app }}/log.yaml"
 
 
 ## Ratelimiting ##
@@ -959,7 +959,7 @@ log_config: "/etc/matrix-__APP__/log.yaml"
 
 # Directory where uploaded images and attachments are stored.
 #
-media_store_path: "__DATA_DIR__/media"
+media_store_path: "{{ data_dir }}/media"
 
 # Media storage providers allow media to be stored in different
 # locations.
@@ -973,7 +973,7 @@ media_storage_providers:
    # Whether to wait for successful storage for local uploads
    store_synchronous: false
    config:
-      directory: "__DATA_DIR__/media_storage"
+      directory: "{{ data_dir }}/media_storage"
 
 # The largest allowed upload size in bytes
 #
@@ -981,7 +981,7 @@ media_storage_providers:
 # your reverse proxy's config. Notably Nginx has a small max body size by default.
 # See https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
 #
-max_upload_size: __MAX_UPLOAD_SIZE__
+max_upload_size: {{ max_upload_size }}
 
 # Maximum number of pixels that will be thumbnailed
 #
@@ -1181,11 +1181,15 @@ oembed:
 
 # The public URIs of the TURN server to give to clients
 #
-__TURN_SERVER_CONFIG__
+{%- if enable_dtls_for_audio_video_turn_call == 'true' %}
+turn_uris: [ "turns:{{ domain }}:{{ port_turnserver_tls }}", "turns:{{ domain }}:{{ port_turnserver_alt_tls }}" ]
+{%- else %}
+turn_uris: [ "turn:{{ domain }}:{{ port_turnserver_tls }}", "turn:{{ domain }}:{{ port_turnserver_alt_tls }}" ]
+{%- endif %}
 
 # The shared secret used to compute passwords for the TURN server
 #
-turn_shared_secret: "__TURNSERVER_PWD__"
+turn_shared_secret: "{{ turnserver_pwd }}"
 
 # The Username and password if the TURN server needs them and
 # does not use a token
@@ -1203,7 +1207,7 @@ turn_user_lifetime: 12h
 # connect to arbitrary endpoints without having first signed up for a
 # valid account (e.g. by passing a CAPTCHA).
 #
-turn_allow_guests: __ALLOW_GUEST_ACCESS__
+turn_allow_guests: {{ allow_guest_access }}
 
 
 ## Registration ##
@@ -1215,7 +1219,7 @@ turn_allow_guests: __ALLOW_GUEST_ACCESS__
 # you use either captcha, email, or token-based verification to verify that new users are not bots. In order to enable registration
 # without any verification, you must also set `enable_registration_without_verification`, found below.
 #
-enable_registration: __ENABLE_REGISTRATION__
+enable_registration: {{ enable_registration }}
 
 # Enable registration without email or captcha verification. Note: this option is *not* recommended,
 # as registration without verification is a known vector for spam and abuse. Defaults to false. Has no effect
@@ -1274,26 +1278,41 @@ enable_registration: __ENABLE_REGISTRATION__
 
 # The user must provide all of the below types of 3PID when registering.
 #
-_REGISTRATION_REQUIRE_3PID_SED_PARAM_
+{%- if registrations_require_3pid %}
+registrations_require_3pid:
+    {%- for pid in registrations_require_3pid.split('&') %}
+  - {{ pid }}
+    {%- endfor %}
+{%- endif %}
 
 # Explicitly disable asking for MSISDNs from the registration
 # flow (overrides registrations_require_3pid if MSISDNs are set as required)
 #
-disable_msisdn_registration: __DISABLE_MSISDN_REGISTRATION__
+disable_msisdn_registration: {{ disable_msisdn_registration }}
 
 # Mandate that users are only allowed to associate certain formats of
 # 3PIDs with accounts on this server.
 #
-_ALLOWD_LOCAL_3PIDS_SED_PARAM_
 #allowed_local_3pids:
 #  - medium: email
 #    pattern: '^[^@]+@vector\.im$'
 #  - medium: msisdn
 #    pattern: '\+44'
+{%- if allowed_local_3pids_email or allowed_local_3pids_msisdn %}
+allowed_local_3pids:
+    {%- for pattern in allowed_local_3pids_email.strip(',').split(',') %}
+  - medium: email
+    pattern: '{{ pattern }}'
+    {%- endfor %}
+    {%- for pattern in allowed_local_3pids_msisdn.strip(',').split(',') %}
+  - medium: msisdn
+    pattern: '{{ pattern }}'
+    {%- endfor %}
+{%- endif %}
 
 # Enable 3PIDs lookup requests to identity servers from this server.
 #
-enable_3pid_lookup: __ENABLE_3PID_LOOKUP__
+enable_3pid_lookup: {{ enable_3pid_lookup }}
 
 # Require users to submit a token during registration.
 # Tokens can be managed using the admin API:
@@ -1313,7 +1332,7 @@ enable_3pid_lookup: __ENABLE_3PID_LOOKUP__
 # If set, allows registration of standard or admin accounts by anyone who
 # has the shared secret, even if registration is otherwise disabled.
 #
-registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
+registration_shared_secret: "{{ registration_shared_secret }}"
 
 # Set the number of bcrypt rounds used to generate password hash.
 # Larger numbers increase the work factor needed to generate the hash.
@@ -1327,7 +1346,7 @@ registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
 # participate in rooms hosted on this server which have been made
 # accessible to anonymous users.
 #
-allow_guest_access: __ALLOW_GUEST_ACCESS__
+allow_guest_access: {{ allow_guest_access }}
 
 # The identity server which we suggest that clients should use when users log
 # in on this server.
@@ -1335,7 +1354,7 @@ allow_guest_access: __ALLOW_GUEST_ACCESS__
 # (By default, no suggestion is made, so it is left up to the client.
 # This setting is ignored unless public_baseurl is also explicitly set.)
 #
-default_identity_server: __DEFAULT_IDENTITY_SERVER__
+default_identity_server: {{ default_identity_server }}
 
 # Handle threepid (email/phone etc) registration and password resets through a set of
 # *trusted* identity servers. Note that this allows the configured identity server to
@@ -1361,7 +1380,7 @@ default_identity_server: __DEFAULT_IDENTITY_SERVER__
 # As email delegates is managed by the synapse server itself this email section is
 # not necessary but msisdn format is still composed by msisdn: <value> on a new line
 account_threepid_delegates:
-    msisdn: __ACCOUNT_THREEPID_DELEGATES_MSISDN__
+    msisdn: {{ account_threepid_delegates_msisdn }}
     #email: https://example.com     # Delegate email sending to example.com
     #msisdn: http://localhost:8090  # Delegate SMS sending to this local process
 
@@ -1397,7 +1416,12 @@ account_threepid_delegates:
 # If the room already exists, make certain it is a publicly joinable
 # room. The join rule of the room must be set to 'public'.
 #
-_AUTO_JOIN_ROOMS_SED_PARAM_
+{%- if auto_join_rooms %}
+auto_join_rooms:
+    {%- for room in auto_join_rooms.split(',') %}
+  - {{ room }}
+    {%- endfor %}
+{%- endif %}
 
 # Where auto_join_rooms are specified, setting this flag ensures that the
 # the rooms exist by creating them when the first user on the
@@ -1413,7 +1437,7 @@ _AUTO_JOIN_ROOMS_SED_PARAM_
 # Defaults to true. Uncomment the following line to disable automatically
 # creating auto-join rooms.
 #
-autocreate_auto_join_rooms: __AUTOCREATE_AUTO_JOIN_ROOMS__
+autocreate_auto_join_rooms: {{ autocreate_auto_join_rooms }}
 
 # Whether the auto_join_rooms that are auto-created are available via
 # federation. Only has an effect if autocreate_auto_join_rooms is true.
@@ -1464,7 +1488,7 @@ autocreate_auto_join_rooms: __AUTOCREATE_AUTO_JOIN_ROOMS__
 #
 # Defaults to true.
 #
-auto_join_rooms_for_guests: __AUTO_JOIN_ROOMS_FOR_GUESTS__
+auto_join_rooms_for_guests: {{ auto_join_rooms_for_guests }}
 
 # Whether to inhibit errors raised when registering a new account if the user ID
 # already exists. If turned on, that requests to /register/available will always
@@ -1505,7 +1529,7 @@ metrics_flags:
 
 # Whether or not to report anonymized homeserver usage statistics.
 #
-report_stats: __REPORT_STATS__
+report_stats: {{ report_stats }}
 
 # The endpoint to report the anonymized homeserver usage statistics to.
 # Defaults to https://matrix.org/report-usage-stats/push
@@ -1575,19 +1599,26 @@ room_prejoin_state:
 # the registration_shared_secret is used, if one is given; otherwise,
 # a secret key is derived from the signing key.
 #
-__MACAROON_SECRET_KEY_PARAM__
+
+# Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
+# For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
+# The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
+# So for the old install we just leave this as it is. And for the new install we use a real macaroon.
+{%- if macaroon_secret_key %}
+macaroon_secret_key: '{{ macaroon_secret_key }}'
+{%- endif %}
 
 # a secret which is used to calculate HMACs for form values, to stop
 # falsification of values. Must be specified for the User Consent
 # forms to work.
 #
-form_secret: "__FORM_SECRET__"
+form_secret: "{{ form_secret }}"
 
 ## Signing Keys ##
 
 # Path to the signing key to sign messages with
 #
-signing_key_path: "/etc/matrix-__APP__/homeserver.signing.key"
+signing_key_path: "/etc/matrix-{{ app }}/homeserver.signing.key"
 
 # The keys that the server used to sign messages with but won't use
 # to sign new messages.
@@ -2030,9 +2061,9 @@ oidc_providers:
   #  user_mapping_provider:
   #    config:
   #      subject_claim: "id"
-  #      localpart_template: "{{ user.login }}"
-  #      display_name_template: "{{ user.name }}"
-  #      email_template: "{{ user.email }}"
+  #      localpart_template: "{ { user.login } }"
+  #      display_name_template: "{ { user.name } }"
+  #      email_template: "{ { user.email } }"
   #  attribute_requirements:
   #    - attribute: userGroup
   #      value: "synapseUsers"
@@ -2048,7 +2079,7 @@ cas_config:
 
   # The URL of the CAS authorization endpoint.
   #
-  server_url: "https://__DOMAIN__/_matrix/cas_server.php"
+  server_url: "https://{{ domain }}/_matrix/cas_server.php"
 
   # The attribute of the CAS response to use as the display name.
   #
@@ -2090,7 +2121,9 @@ sso:
     # By default, this list contains only the login fallback page.
     #
     client_whitelist:
-_DOMAIN_WHITELIST_CLIENT_
+{%- for domain in domain_whitelist_client.splitlines() %}
+      - {{ domain }}
+{%- endfor %}
 
     # Uncomment to keep a user's profile fields in sync with information from
     # the identity provider. Currently only syncing the displayname is
@@ -2169,7 +2202,7 @@ _DOMAIN_WHITELIST_CLIENT_
 password_config:
    # Uncomment to disable password login
    #
-   enabled: __PASSWORD_ENABLED__
+   enabled: {{ password_enabled }}
 
    # Uncomment to disable authentication against the local password
    # database. This is ignored if `enabled` is false, and is only useful
@@ -2248,7 +2281,7 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-       filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
+       filter: "(&(objectClass=posixAccount)(permission=cn={{ app }}.main,ou=permission,dc=yunohost,dc=org))"
 
 
 
@@ -2260,7 +2293,7 @@ password_providers:
 email:
   # The hostname of the outgoing SMTP server to use. Defaults to 'localhost'.
   #
-  smtp_host: "__DOMAIN__"
+  smtp_host: "{{ domain }}"
 
   # The port on the mail server for outgoing SMTP. Defaults to 25.
   #
@@ -2269,8 +2302,8 @@ email:
   # Username/password for authentication to the SMTP server. By default, no
   # authentication is attempted.
   #
-  smtp_user: __APP__
-  smtp_pass: __MAIL_PWD__
+  smtp_user: {{ app }}
+  smtp_pass: {{ mail_pwd }}
 
   # Uncomment the following to require TLS transport security for SMTP.
   # By default, Synapse will connect over plain text, and will then switch to
@@ -2297,7 +2330,7 @@ email:
   # Note that the placeholder must be written '%(app)s', including the
   # trailing 's'.
   #
-  notif_from: "Your Friendly %(app)s Home Server <__APP__@__DOMAIN__>"
+  notif_from: "Your Friendly %(app)s Home Server <{{ app }}@{{ domain }}>"
 
   # app_name defines the default value for '%(app)s' in notif_from and email
   # subjects. It defaults to 'Matrix'.
@@ -2307,12 +2340,12 @@ email:
   # Uncomment the following to enable sending emails for messages that the user
   # has missed. Disabled by default.
   #
-  enable_notifs: __ENABLE_NOTIFS__
+  enable_notifs: {{ enable_notifs }}
 
   # Uncomment the following to disable automatic subscription to email
   # notifications for new users. Enabled by default.
   #
-  notif_for_new_users: __NOTIF_FOR_NEW_USERS__
+  notif_for_new_users: {{ notif_for_new_users }}
 
   # Custom URL for client links within the email notifications. By default
   # links will be based on "https://matrix.to".
@@ -2320,7 +2353,7 @@ email:
   # (This setting used to be called riot_base_url; the old name is still
   # supported for backwards-compatibility but is now deprecated.)
   #
-  client_base_url: __CLIENT_BASE_URL__
+  client_base_url: {{ client_base_url }}
 
   # Configure the time that a validation email will expire after sending.
   # Defaults to 1h.
@@ -2331,7 +2364,7 @@ email:
   # to the identity server as the org.matrix.web_client_location key. Defaults
   # to unset, giving no guidance to the identity server.
   #
-  invite_client_location: __INVITE_CLIENT_LOCATION__
+  invite_client_location: {{ invite_client_location }}
 
   # Subjects to use when sending emails from Synapse.
   #
@@ -2420,7 +2453,7 @@ push:
   # The default value is "true" to include message details. Uncomment to only
   # include the event ID and room ID in push notification payloads.
   #
-  include_content: __PUSH_INCLUDE_CONTENT__
+  include_content: {{ push_include_content }}
 
   # When a push notification is received, an unread count is also sent.
   # This number can either be calculated as the number of unread messages
@@ -2450,12 +2483,12 @@ push:
 # Note that this option will only affect rooms created after it is set. It
 # will also not affect rooms created by other servers.
 #
-encryption_enabled_by_default_for_room_type: __E2E_ENABLED_BY_DEFAULT__
+encryption_enabled_by_default_for_room_type: {{ e2e_enabled_by_default }}
 
 
 # Uncomment to allow non-server-admin users to create groups on this server
 #
-enable_group_creation: __ENABLE_GROUP_CREATION__
+enable_group_creation: {{ enable_group_creation }}
 
 # If enabled, non server admins can only create groups with local parts
 # starting with this prefix
