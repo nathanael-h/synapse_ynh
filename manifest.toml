@@ -88,7 +88,7 @@ ram.runtime = "1G"
     main.additional_urls = ["/_matrix/cas_server.php/login"]
     main.label = "Server SSO"
     main.auth_header = true
-    main.show_tile=false
+    main.show_tile = false
     main.protected = true
 
     server_api.url = "/_matrix"
