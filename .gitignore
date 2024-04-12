@@ -5,3 +5,6 @@
 
 *swp
 
+auto_update_config.sh
+auto_update/Synapse_build_*.log
+auto_update/synapse_build_temp.log

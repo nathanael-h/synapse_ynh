@@ -1,0 +1,124 @@
+packaging_format = 2
+
+id = "synapse"
+name = "Synapse"
+description.en = "Instant messaging server which uses Matrix"
+description.fr = "Serveur de messagerie instantané basé sur Matrix"
+
+version = "1.104.0~ynh1"
+
+maintainers = ["Josué Tille"]
+
+[upstream]
+license = "Apache-2.0"
+website = "https://matrix.org/"
+code = "https://github.com/element-hq/synapse"
+admindoc = "https://matrix-org.github.io/synapse/latest/welcome_and_overview.html"
+cpe = "cpe:2.3:a:matrix:synapse"
+fund = "https://matrix.org/support/#"
+
+[integration]
+yunohost = ">= 11.2.11"
+architectures = "all"
+multi_instance = true
+ldap = true
+sso = "not_relevant"
+disk = "250M"
+ram.build = "500M"
+ram.runtime = "1G"
+
+[install]
+    [install.domain]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "domain"
+
+    [install.server_name]
+    ask.en = "If your Synapse domain is a subdomain, you can choose a name for your Synapse server to have your Matrix user-ids looking like @user:domain.org instead of @user:synapse.domain.org"
+    ask.fr = "Si votre domaine pour Synapse est un sous-domaine, vous pouvez choisir un nom pour votre serveur Synapse afin que vos identifiants Matrix soient @utilisateur:domain.org plutôt que @utilisateur:synapse.domain.org"
+    type = "string"
+    example = "domain.org"
+    default = "Same than the domain"
+
+    [install.is_free_registration]
+    ask.en = "Is it a server with free registration?"
+    ask.fr = "Est-ce un serveur avec création de compte libre ?"
+    help.en = "A public server means that anybody will be able to register on this server."
+    help.fr = "Un serveur public signifie que n'importe qui pourra s'enregistrer sur ce serveur."
+    type = "boolean"
+    default = false
+
+    [install.jitsi_server]
+    ask.en = "Jitsi server address for conferencing?"
+    ask.fr = "Adresse du serveur Jitsi pour les conférences ?"
+    type = "string"
+    example = "domain.org"
+    default = "jitsi.riot.im"
+
+    [install.init_main_permission]
+    help.en = "Define the users allowed to access to synapse. Setting this to 'visitors' don't make sens in this case."
+    type = "group"
+    example = "all_users"
+    default = "all_users"
+
+[resources]
+    [resources.sources.synapse_prebuilt_armv7_bookworm]
+    prefetch = false
+    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.104.0/matrix-synapse_1.104.0-bookworm-bin1_armv7l.tar.gz"
+    armhf.sha256 = "880c3507a424277cd5414363e22dc2018407e572c5f7bb388a6560707ae4231e"
+
+    [resources.sources.synapse_prebuilt_armv7_bullseye]
+    prefetch = false
+    armhf.url = "https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.104.0/matrix-synapse_1.104.0-bullseye-bin1_armv7l.tar.gz"
+    armhf.sha256 = "8f2f957d25566e5051aa0d5c88bcedacf6ea1615cc7aca84491a7ded84fbae11"
+
+    [resources.system_user]
+    allow_email = true
+    home = "/opt/yunohost/matrix-__APP__"
+
+    [resources.install_dir]
+    dir = "/var/www/__APP__"
+    owner = "__APP__:rwX"
+    group = "__APP__:rX"
+
+    [resources.data_dir]
+    dir = "/home/yunohost.app/__APP__"
+
+    [resources.permissions]
+    main.url = "/"
+    main.additional_urls = ["/_matrix/cas_server.php/login"]
+    main.label = "Server SSO"
+    main.auth_header = true
+    main.show_tile=false
+    main.protected = true
+
+    server_api.url = "/_matrix"
+    server_api.label = "Server access for client apps"
+    server_api.allowed = "visitors"
+    server_api.auth_header = false
+    server_api.show_tile = false
+    server_api.protected = true
+
+    admin_api.url = "/_synapse"
+    admin_api.label = "Admin API"
+    admin_api.allowed = "visitors"
+    admin_api.auth_header = false
+    admin_api.show_tile = false
+    admin_api.protected = true
+
+    [resources.ports]
+    synapse_tls.default = 8448
+    synapse_tls.exposed = "TCP"
+    synapse.default = 8008
+    turnserver_tls.default = 5349
+    turnserver_tls.exposed = "Both"
+    turnserver_alt_tls.default = 5350
+    turnserver_alt_tls.exposed = "Both"
+    cli.default = 5766
+
+    [resources.apt]
+    packages = ["coturn", "acl", "postgresql", "php-fpm",
+                "python3-dev", "python3-venv", "python3-pip", "python3-setuptools", "python3-lxml",
+                "build-essential", "libffi-dev", "libssl-dev", "libxml2-dev", "libxslt1-dev", "zlib1g-dev", "libjpeg-dev", "libpq-dev"]
+
+    [resources.database]
+    type = "postgresql"

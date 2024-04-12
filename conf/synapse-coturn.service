@@ -1,17 +1,25 @@
 [Unit]
-Description=Synapse Matrix homeserver
-After=network.target
+Description=Coturn
+Documentation=man:coturn(1) man:turnadmin(1) man:turnserver(1)
+After=syslog.target network-online.target
 
 [Service]
-Type=simple
-User=matrix-__APP__
-WorkingDirectory=/opt/yunohost/matrix-__APP__
-BindPaths=/etc/matrix-__APP__
-EnvironmentFile=/etc/default/matrix-__APP__
-ExecStartPre=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/ --generate-keys
-ExecStart=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/
-Restart=always
-RestartSec=3
+User=turnserver
+Group=turnserver
+Type=notify
+EnvironmentFile=/etc/matrix-__APP__/coturn_env
+ExecStart=/usr/bin/turnserver -c /etc/matrix-__APP__/coturn.conf $EXTRA_OPTIONS --pidfile=
+Restart=on-failure
+InaccessibleDirectories=/home
+PrivateTmp=yes
+
+LimitCORE=infinity
+LimitNOFILE=999999
+LimitNPROC=60000
+LimitRTPRIO=infinity
+LimitRTTIME=7000000
+CPUSchedulingPolicy=other
+UMask=0007
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these
@@ -20,7 +28,6 @@ RestartSec=3
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 RestrictNamespaces=yes
 RestrictRealtime=yes
 DevicePolicy=closed
@@ -29,7 +36,7 @@ ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 LockPersonality=yes
-SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap
+SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @swap
 
 # Denying access to capabilities that should not be relevant for webapps
 # Doc: https://man7.org/linux/man-pages/man7/capabilities.7.html
@@ -41,7 +48,7 @@ CapabilityBoundingSet=~CAP_BLOCK_SUSPEND CAP_WAKE_ALARM
 CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
 CapabilityBoundingSet=~CAP_MAC_ADMIN CAP_MAC_OVERRIDE
 CapabilityBoundingSet=~CAP_NET_ADMIN CAP_NET_BROADCAST CAP_NET_RAW
-CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG 
+CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG
 
 [Install]
 WantedBy=multi-user.target

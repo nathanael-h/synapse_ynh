@@ -1,33 +1,34 @@
 #!/bin/bash
 
-app_instance=__APP__
+set -eu
+
+app=__APP__
+YNH_APP_BASEDIR=/etc/yunohost/apps/"$app"
+
+pushd /etc/yunohost/apps/$app/conf
 
 source /usr/share/yunohost/helpers
 
-coturn_config_path="/etc/matrix-$app_instance/coturn.conf"
-public_ip4="$(curl ip.yunohost.org)" || true
-public_ip6="$(curl ipv6.yunohost.org)" || true
+# Must load db_name var to load _common.sh
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+source ../scripts/_common.sh
 
-old_config_line=$(egrep "^external-ip=.*\$" $coturn_config_path)
-perl -i -pe 's/(^external-ip=.*\n)*//g' $coturn_config_path
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+port_cli=$(ynh_app_setting_get --app=$app --key=port_cli)
+turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
+port_turnserver_tls=$(ynh_app_setting_get --app=$app --key=port_turnserver_tls)
+port_turnserver_alt_tls=$(ynh_app_setting_get --app=$app --key=port_turnserver_alt_tls)
+enable_dtls_for_audio_video_turn_call=$(ynh_app_setting_get --app=$app --key=enable_dtls_for_audio_video_turn_call)
 
-if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
+previous_checksum=$(ynh_app_setting_get --app=$app --key=checksum__etc_matrix-synapse_coturn.conf)
+configure_coturn
+new_checksum=$(ynh_app_setting_get --app=$app --key=checksum__etc_matrix-synapse_coturn.conf)
+
+setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+
+if [ "$previous_checksum" != "$new_checksum" ]
 then
-    echo "external-ip=$public_ip4" >> "$coturn_config_path"
-fi
-
-if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
-then
-    echo "external-ip=$public_ip6" >> "$coturn_config_path"
-fi
-
-new_config_line=$(egrep "^external-ip=.*\$" "/etc/matrix-$app_instance/coturn.conf")
-
-setfacl -R -m user:turnserver:rX  /etc/matrix-$app_instance
-
-if [ "$old_config_line" != "$new_config_line" ]
-then
-    systemctl restart coturn-$app_instance.service
+    systemctl restart $app-coturn.service
 fi
 
 exit 0
