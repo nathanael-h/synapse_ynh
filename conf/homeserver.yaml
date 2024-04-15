@@ -1604,7 +1604,7 @@ room_prejoin_state:
 # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
 # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
 # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
-{%- if macaroon_secret_key %}
+{%- if macaroon_secret_key is defined %}
 macaroon_secret_key: '{{ macaroon_secret_key }}'
 {%- endif %}
 
