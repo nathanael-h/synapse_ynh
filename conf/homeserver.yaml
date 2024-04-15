@@ -1419,7 +1419,7 @@ account_threepid_delegates:
 {%- if auto_join_rooms %}
 auto_join_rooms:
     {%- for room in auto_join_rooms.split(',') %}
-  - {{ room }}
+  - '{{ room }}'
     {%- endfor %}
 {%- endif %}
 
