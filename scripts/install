@@ -23,76 +23,19 @@ fi
 
 ynh_script_progression --message="Storing installation settings..." --weight=1
 
-report_stats="false"
-e2e_enabled_by_default="off"
-allow_public_rooms_without_auth="false"
-allow_public_rooms_over_federation="false"
-max_upload_size="100M"
-disable_msisdn_registration="true"
-registrations_require_3pid=email
-allowed_local_3pids_email=""
-allowed_local_3pids_msisdn=""
-allow_guest_access="false"
-account_threepid_delegates_msisdn=""
-default_identity_server="https://matrix.org"
-auto_join_rooms=""
-autocreate_auto_join_rooms="false"
-auto_join_rooms_for_guests="true"
-enable_notifs="true"
-notif_for_new_users="true"
-enable_group_creation="true"
-push_include_content="true"
-enable_3pid_lookup=false
-enable_dtls_for_audio_video_turn_call=true
+ensure_vars_set
 
 if [ "$is_free_registration" -eq 0 ]
 then
-    enable_registration="false"
-    password_enabled="false"
+    enable_registration=false
+    password_enabled=false
 else
-    enable_registration="true"
-    password_enabled="true"
+    enable_registration=true
+    password_enabled=true
 fi
 
-element_ynh_url="https://matrix.to/"
-# Get app name of first Element Instance (can be changed later in Config Panel)
-element_instance="element"
-if yunohost --output-as plain app list | grep -q "^$element_instance$"; then
-    element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-    element_path=$(ynh_app_setting_get --app $element_instance --key path)
-    element_ynh_url="https://""$element_domain""$element_path"
-fi
-web_client_location=$element_ynh_url
-client_base_url=$element_ynh_url
-invite_client_location=$element_ynh_url
-
-ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
-ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
-ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
-ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
-ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
-ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
-ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
-ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
-ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
-ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
-ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
-ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
-ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
-ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
-ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
-ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
-ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
-ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
-ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
-ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
-ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
-ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
-ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
-ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
-ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
-ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
-ynh_app_setting_set --app=$app --key=enable_dtls_for_audio_video_turn_call --value=$enable_dtls_for_audio_video_turn_call
+ynh_app_setting_set --app="$app" --key=password_enabled --value="$password_enabled"
+ynh_app_setting_set --app="$app" --key=enable_registration --value="$enable_registration"
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -118,7 +61,7 @@ ynh_script_progression --message="Creating a dh file..." --weight=3
 # Make dh cert for synapse if it doesn't exist
 if [ ! -e /etc/ssl/private/dh2048.pem ]
 then
-    ynh_exec_warn_less openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048
+    ynh_exec_warn_less openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -dsaparam 2048
     chown root:ssl-cert /etc/ssl/private/dh2048.pem
     chmod 640 /etc/ssl/private/dh2048.pem
 fi
@@ -180,13 +123,11 @@ $code_dir/bin/python -m synapse.app.homeserver --keys-directory /etc/matrix-$app
 registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
 form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
 macaroon_secret_key=$(egrep "^macaroon_secret_key:" homeserver.yml | cut -d'"' -f2)
-sync_proxy_secret=$(ynh_string_random -l 40)
 
 # store in yunohost settings
 ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
 ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
 ynh_app_setting_set --app=$app --key=macaroon_secret_key --value="$macaroon_secret_key"
-ynh_app_setting_set --app=$app --key=sync_proxy_secret --value="$sync_proxy_secret"
 
 #=================================================
 # SETUP SYSTEMD
@@ -222,7 +163,8 @@ ynh_script_progression --message="Configuring Synapse..." --weight=2
 turnserver_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=turnserver_pwd --value=$turnserver_pwd
 
-configure_synapse
+ynh_add_jinja_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
+ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 ynh_add_config --template=sliding_proxy.conf --destination=/etc/matrix-$app/sliding_proxy.conf
 
 #=================================================

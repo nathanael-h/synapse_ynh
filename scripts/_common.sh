@@ -1,6 +1,8 @@
-python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
-code_dir="/opt/yunohost/matrix-$app"
-db_name_slidingproxy=${db_name}_slidingproxy
+readonly python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
+readonly code_dir="/opt/yunohost/matrix-$app"
+readonly domain_whitelist_client="$(yunohost --output-as json domain list  | jq -r '.domains | .[]')"
+readonly db_name_slidingproxy=${db_name}_slidingproxy
+
 install_sources() {
     # Install/upgrade synapse in virtualenv
 
@@ -61,68 +63,6 @@ install_sources() {
     ynh_setup_source --dest_dir=$code_dir/sliding-chroot/bin/ --source_id=sliding_proxy
 }
 
-configure_synapse() {
-    local domain_whitelist_client=$(yunohost --output-as plain domain list \
-        | grep -E "^#" -v \
-        | sort | uniq \
-        | sed -r 's|^(.*)$|      - \1|' \
-        | sed -z 's|\n|\\n|g')
-    local macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-    local auto_join_rooms_sed_param=""
-    if [ -n "$auto_join_rooms" ]; then
-        auto_join_rooms_sed_param+='auto_join_rooms:'
-        while read -d, room; do
-            auto_join_rooms_sed_param+='\n  - "'$room'"'
-        done <<< "${auto_join_rooms},"
-    fi
-    local registration_require_3pid_sed_param=""
-    case ${registrations_require_3pid} in
-        'email')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - email"
-            ;;
-        'msisdn')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - msisdn"
-            ;;
-        'email&msisdn')
-            registration_require_3pid_sed_param="registrations_require_3pid:\n  - email\n  - msisdn"
-            ;;
-    esac
-
-    local allowd_local_3pids_sed_param=""
-    if [ -n "$allowed_local_3pids_email" ] || [ -n "$allowed_local_3pids_msisdn" ]; then
-        allowd_local_3pids_sed_param="allowed_local_3pids:"
-
-        if [ -n "$allowed_local_3pids_email" ]; then
-            while read -d, pattern ; do
-                allowd_local_3pids_sed_param+="\n  - medium: email\n    pattern: '$pattern'"
-            done <<< "${allowed_local_3pids_email},"
-        fi
-        if [ -n "$allowed_local_3pids_msisdn" ]; then
-            while read -d, pattern ; do
-                allowd_local_3pids_sed_param+="\n  - medium: msisdn\n    pattern: '$pattern'"
-            done <<< "${allowed_local_3pids_msisdn},"
-        fi
-    fi
-    local turn_server_config=""
-    if $enable_dtls_for_audio_video_turn_call; then
-        turn_server_config='turn_uris: [ "turns:'$domain:$port_turnserver_tls'", "turns:'$domain:$port_turnserver_alt_tls'" ]'
-    else
-        turn_server_config='turn_uris: [ "turn:'$domain:$port_turnserver_tls'", "turn:'$domain:$port_turnserver_alt_tls'" ]'
-    fi
-
-    # Force enable it because some client like Element X don't support CAS and so require to have password authentication enabled
-    password_enabled=true
-
-    ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
-    sed -i "s|_DOMAIN_WHITELIST_CLIENT_|$domain_whitelist_client|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_AUTO_JOIN_ROOMS_SED_PARAM_|$auto_join_rooms_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_REGISTRATION_REQUIRE_3PID_SED_PARAM_|$registration_require_3pid_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    sed -i "s|_ALLOWD_LOCAL_3PIDS_SED_PARAM_|$allowd_local_3pids_sed_param|g" /etc/matrix-$app/homeserver.yaml
-    ynh_store_file_checksum --file=/etc/matrix-$app/homeserver.yaml
-
-    ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
-}
-
 configure_coturn() {
     # Get public IP and set as external IP for coturn
     # note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
@@ -132,22 +72,13 @@ configure_coturn() {
     local turn_external_ip=""
     if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
     then
-        turn_external_ip+="external-ip=$public_ip4\\n"
+        turn_external_ip+="$public_ip4,"
     fi
-
     if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
     then
-        turn_external_ip+="external-ip=$public_ip6\\n"
+        turn_external_ip+="$public_ip6"
     fi
-    local turn_clear_com_param=''
-    if $enable_dtls_for_audio_video_turn_call; then
-        turn_clear_com_param+='# Block clear communication\nno-udp\nno-tcp'
-    fi
-
-    ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
-    sed -i "s|_TURN_CLEAR_COM_PARAM_|$turn_clear_com_param|g" /etc/matrix-$app/coturn.conf
-    sed -i "s|_TURN_EXTERNAL_IP_|$turn_external_ip|g" /etc/matrix-$app/coturn.conf
-    ynh_store_file_checksum --file=/etc/matrix-$app/coturn.conf
+    ynh_add_jinja_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
 }
 
 configure_nginx() {
@@ -169,29 +100,177 @@ configure_nginx() {
     ynh_add_nginx_config
 }
 
-set_permissions() {
-    chown $app:$app -R $code_dir
-    chmod o= -R $code_dir
+ensure_vars_set() {
+    if [ -z "${report_stats:-}" ]; then
+        report_stats=false
+        ynh_app_setting_set --app="$app" --key=report_stats --value="$report_stats"
+    fi
+    if [ -z "${e2e_enabled_by_default:-}" ] ; then
+        e2e_enabled_by_default=invite
+        ynh_app_setting_set --app="$app" --key=e2e_enabled_by_default --value="$e2e_enabled_by_default"
+    fi
 
-    chmod 770 $code_dir/Coturn_config_rotate.sh
-    chmod 700 $code_dir/update_synapse_for_appservice.sh
-    chmod 700 $code_dir/set_admin_user.sh
-    chmod 755 $code_dir/sliding-chroot/bin/sliding-proxy
+    if [ -z "${web_client_location:-}" ]
+    then
+        web_client_location="https://matrix.to/"
+
+        element_instance=element
+        if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
+            element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+            element_path=$(ynh_app_setting_get --app $element_instance --key path)
+            web_client_location="https://""$element_domain""$element_path"
+        fi
+        ynh_app_setting_set --app="$app" --key=web_client_location --value="$web_client_location"
+    fi
+    if [ -z "${client_base_url:-}" ]
+    then
+        client_base_url="$web_client_location"
+        ynh_app_setting_set --app="$app" --key=client_base_url --value="$client_base_url"
+    fi
+    if [ -z "${invite_client_location:-}" ]
+    then
+        invite_client_location="$web_client_location"
+        ynh_app_setting_set --app="$app" --key=invite_client_location --value="$invite_client_location"
+    fi
+
+    if [ -z "${allow_public_rooms_without_auth:-}" ]
+    then
+        allow_public_rooms_without_auth=${allow_public_rooms:-false}
+        ynh_app_setting_set --app="$app" --key=allow_public_rooms_without_auth --value="$allow_public_rooms_without_auth"
+    fi
+    if [ -z "${allow_public_rooms_over_federation:-}" ]
+    then
+        allow_public_rooms_over_federation=${allow_public_rooms:-false}
+        ynh_app_setting_set --app="$app" --key=allow_public_rooms_over_federation --value="$allow_public_rooms_over_federation"
+    fi
+    if [ -z "${max_upload_size:-}" ]
+    then
+        max_upload_size=100M
+        ynh_app_setting_set --app="$app" --key=max_upload_size --value="$max_upload_size"
+    fi
+    if [ -z "${disable_msisdn_registration:-}" ]
+    then
+        disable_msisdn_registration=true
+        ynh_app_setting_set --app="$app" --key=disable_msisdn_registration --value=$disable_msisdn_registration
+    fi
+    if [ -z "${account_threepid_delegates_msisdn:-}" ]
+    then
+        account_threepid_delegates_msisdn=''
+        ynh_app_setting_set --app="$app" --key=account_threepid_delegates_msisdn --value="$account_threepid_delegates_msisdn"
+    fi
+
+    if [ -z "${registrations_require_3pid:-}" ]
+    then
+        registrations_require_3pid=email
+        ynh_app_setting_set --app="$app" --key=registrations_require_3pid --value="$registrations_require_3pid"
+    fi
+    if [ -z "${allowed_local_3pids_email:-}" ]
+    then
+        allowed_local_3pids_email=''
+        ynh_app_setting_set --app="$app" --key=allowed_local_3pids_email --value="$allowed_local_3pids_email"
+    fi
+    if [ -z "${allowed_local_3pids_msisdn:-}" ]
+    then
+        allowed_local_3pids_msisdn=''
+        ynh_app_setting_set --app="$app" --key=allowed_local_3pids_msisdn --value="$allowed_local_3pids_msisdn"
+    fi
+    if [ -z "${account_threepid_delegates_msisdn:-}" ]
+    then
+        account_threepid_delegates_msisdn=""
+        ynh_app_setting_set --app="$app" --key=account_threepid_delegates_msisdn --value="$account_threepid_delegates_msisdn"
+    fi
+
+    if [ -z "${allow_guest_access:-}" ]
+    then
+        allow_guest_access=false
+        ynh_app_setting_set --app="$app" --key=allow_guest_access --value="$allow_guest_access"
+    fi
+    if [ -z "${default_identity_server:-}" ]
+    then
+        default_identity_server='https://matrix.org'
+        ynh_app_setting_set --app=$app --key=default_identity_server --value="$default_identity_server"
+    fi
+
+    if [ -z "${auto_join_rooms:-}" ]
+    then
+        auto_join_rooms=''
+        ynh_app_setting_set --app="$app" --key=auto_join_rooms --value="$auto_join_rooms"
+    fi
+    if [ -z "${autocreate_auto_join_rooms:-}" ]
+    then
+        autocreate_auto_join_rooms=false
+        ynh_app_setting_set --app="$app" --key=autocreate_auto_join_rooms --value="$autocreate_auto_join_rooms"
+    fi
+    if [ -z "${auto_join_rooms_for_guests:-}" ]
+    then
+        auto_join_rooms_for_guests=true
+        ynh_app_setting_set --app="$app" --key=auto_join_rooms_for_guests --value="$auto_join_rooms_for_guests"
+    fi
+
+    if [ -z "${enable_notifs:-}" ]
+    then
+        enable_notifs=true
+        ynh_app_setting_set --app="$app" --key=enable_notifs --value="$enable_notifs"
+    fi
+    if [ -z "${notif_for_new_users:-}" ]
+    then
+        notif_for_new_users=true
+        ynh_app_setting_set --app="$app" --key=notif_for_new_users --value="$notif_for_new_users"
+    fi
+    if [ -z "${enable_group_creation:-}" ]
+    then
+        enable_group_creation=true
+        ynh_app_setting_set --app="$app" --key=enable_group_creation --value="$enable_group_creation"
+    fi
+
+    if [ -z "${enable_3pid_lookup:-}" ]
+    then
+        enable_3pid_lookup=false
+        ynh_app_setting_set --app="$app" --key=enable_3pid_lookup --value="$enable_3pid_lookup"
+    fi
+
+    if [ -z "${push_include_content:-}" ]
+    then
+        push_include_content=true
+        ynh_app_setting_set --app="$app" --key=push_include_content --value="$push_include_content"
+    fi
+
+    if [ -z "${enable_dtls_for_audio_video_turn_call:-}" ]
+    then
+        enable_dtls_for_audio_video_turn_call=true
+        ynh_app_setting_set --app="$app" --key=enable_dtls_for_audio_video_turn_call --value="$enable_dtls_for_audio_video_turn_call"
+    fi
+
+    if [ -z "${sync_proxy_secret:-}" ]
+    then
+        sync_proxy_secret=$(ynh_string_random -l 40)
+        ynh_app_setting_set --app=$app --key=sync_proxy_secret --value=$sync_proxy_secret
+    fi
+}
+
+set_permissions() {
+    chown $app:$app -R "$code_dir"
+    chmod o= -R "$code_dir"
+
+    chmod 770 "$code_dir"/Coturn_config_rotate.sh
+    chmod 700 "$code_dir"/update_synapse_for_appservice.sh
+    chmod 700 "$code_dir"/set_admin_user.sh
+    chmod 755 "$code_dir"/sliding-chroot/bin/sliding-proxy
 
     if [ "${1:-}" == data ]; then
-        find $data_dir \(   \! -perm -o= \
-                         -o \! -user $app \
-                         -o \! -group $app \) \
-                    -exec chown $app:$app {} \; \
+        find "$data_dir" \(   \! -perm -o= \
+                         -o \! -user "$app" \
+                         -o \! -group "$app" \) \
+                    -exec chown "$app:$app" {} \; \
                     -exec chmod o= {} \;
     fi
 
-    chown $app:$app -R /etc/matrix-$app
-    chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-    setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+    chown "$app:$app" -R /etc/matrix-"$app"
+    chmod u=rwX,g=rX,o= -R /etc/matrix-"$app"
+    setfacl -R -m user:turnserver:rX  /etc/matrix-"$app"
 
-    chmod 600 /etc/matrix-$app/$server_name.signing.key
+    chmod 600 /etc/matrix-"$app"/"$server_name".signing.key
 
-    chown $app:root -R /var/log/matrix-$app
-    setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+    chown "$app":root -R /var/log/matrix-"$app"
+    setfacl -R -m user:turnserver:rwX  /var/log/matrix-"$app"
 }

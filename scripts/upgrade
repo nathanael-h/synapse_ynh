@@ -33,6 +33,8 @@ if [ -z "${domain:-}" ]; then
     ynh_app_setting_set --app=$app --key=no_sso --value true
 fi
 
+ensure_vars_set
+
 # Define $server_name if not already defined
 if [ -z "${server_name:-}" ]; then
     server_name=$domain
@@ -45,135 +47,30 @@ if [ -z "${jitsi_server:-}" ]; then
     ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 fi
 
-# Define $e2e_enabled_by_default if not already defined
-if [ -z "${e2e_enabled_by_default:-}" ] ; then
-    e2e_enabled_by_default="invite"
-    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
-fi
-
 if [ "$e2e_enabled_by_default" = "true" ] ; then
     e2e_enabled_by_default="all"
     ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
-
 if [ "$e2e_enabled_by_default" = "false" ]; then
     e2e_enabled_by_default="off"
     ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
-if [ -z "${report_stats:-}" ]; then
-    report_stats="false"
-    ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
-fi
-
-if [ -z "${web_client_location:-}" ]
-then
-    web_client_location="https://matrix.to/"
-
-    element_instance="element"
-    if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
-        element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-        element_path=$(ynh_app_setting_get --app $element_instance --key path)
-        web_client_location="https://""$element_domain""$element_path"
-    fi
-    ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
-fi
-if [ -z "${client_base_url:-}" ]
-then
-    client_base_url=$web_client_location
-    ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
-fi
-if [ -z "${invite_client_location:-}" ]
-then
-    invite_client_location=$web_client_location
-    ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
-fi
-if [ -z "${allow_public_rooms_without_auth:-}" ]
-then
-    allow_public_rooms_without_auth=${allow_public_rooms:-false}
-    ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
-fi
-if [ -z "${allow_public_rooms_over_federation:-}" ]
-then
-    allow_public_rooms_over_federation=${allow_public_rooms:-false}
-    ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
-fi
-if [ -z "${max_upload_size:-}" ]
-then
-    max_upload_size="100M"
-    ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
-fi
-if [ -z "${disable_msisdn_registration:-}" ]
-then
-    disable_msisdn_registration="true"
-    ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
-fi
-if [ -z "${registrations_require_3pid:-}" ] || [ "${registrations_require_3pid}" == none ]
+if [ "${registrations_require_3pid}" == none ]
 then
     registrations_require_3pid=email
     ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 fi
-if [ -z "${allowed_local_3pids_email:-}" ] || [[ "${allowed_local_3pids_email}" =~ \'.*\' ]] # Also remove shit value from previous config panel
+if [[ "${allowed_local_3pids_email}" =~ \'.*\' ]] # Also remove shit value from previous config panel
 then
     allowed_local_3pids_email=''
     ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
 fi
-if [ -z "${allowed_local_3pids_msisdn:-}" ] || [[ "${allowed_local_3pids_msisdn}" =~ \'.*\' ]] # Also remove shit value from previous config panel
+if [[ "${allowed_local_3pids_msisdn}" =~ \'.*\' ]] # Also remove shit value from previous config panel
 then
     allowed_local_3pids_msisdn=''
     ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
 fi
-if [ -z "${account_threepid_delegates_msisdn:-}" ]
-then
-    account_threepid_delegates_msisdn=""
-    ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
-fi
-if [ -z "${allow_guest_access:-}" ]
-then
-    allow_guest_access="false"
-    ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
-fi
-if [ -z "${default_identity_server:-}" ]
-then
-    default_identity_server="https://matrix.org"
-    ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
-fi
-if [ -z "${auto_join_rooms:-}" ]
-then
-    auto_join_rooms=""
-    ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
-fi
-if [ -z "${autocreate_auto_join_rooms:-}" ]
-then
-    autocreate_auto_join_rooms="false"
-    ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
-fi
-if [ -z "${auto_join_rooms_for_guests:-}" ]
-then
-    auto_join_rooms_for_guests="true"
-    ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
-fi
-if [ -z "${enable_notifs:-}" ]
-then
-    enable_notifs="true"
-    ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
-fi
-if [ -z "${notif_for_new_users:-}" ]
-then
-    notif_for_new_users="true"
-    ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
-fi
-if [ -z "${enable_group_creation:-}" ]
-then
-    enable_group_creation="true"
-    ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
-fi
-if [ -z "${enable_3pid_lookup:-}" ]
-then
-    enable_3pid_lookup=false
-    ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
-fi
-
 
 if [ -z "${enable_registration:-}" ]
 then
@@ -192,22 +89,6 @@ then
   fi
   ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
   ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
-fi
-
-if [ -z "${push_include_content:-}" ]
-then
-    push_include_content="true"
-    ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
-fi
-if [ -z "${enable_dtls_for_audio_video_turn_call:-}" ]
-then
-    enable_dtls_for_audio_video_turn_call=true
-    ynh_app_setting_set --app=$app --key=enable_dtls_for_audio_video_turn_call --value=$enable_dtls_for_audio_video_turn_call
-fi
-if [ -z "${sync_proxy_secret:-}" ]
-then
-    sync_proxy_secret=$(ynh_string_random -l 40)
-    ynh_app_setting_set --app=$app --key=sync_proxy_secret --value=$sync_proxy_secret
 fi
 
 # remove legacy env file into /etc/default
@@ -282,7 +163,7 @@ if [ ! -e /etc/ssl/private/dh2048.pem ]
 then
     ynh_script_progression --message="Creating a dh file..." --weight=1
 
-    ynh_exec_warn_less openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048
+    ynh_exec_warn_less openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -dsaparam 2048
     chown root:ssl-cert /etc/ssl/private/dh2048.pem
     chmod 640 /etc/ssl/private/dh2048.pem
 fi
@@ -354,7 +235,7 @@ if grep -q "^matrix-$app" /etc/passwd; then
     # Must stop php before remove user as user is used by php
     systemctl stop php$YNH_PHP_VERSION-fpm.service
 
-    ynh_''system_user_delete --username=matrix-$app
+    ynh_''system_user_delete --username=matrix-"$app" || true
     yunohost user delete $app || true
     ynh_''system_user_create --username=$app --home_dir=$code_dir
     adduser $app ssl-cert
@@ -408,7 +289,8 @@ fi
 #=================================================
 ynh_script_progression --message="Updating synapse config..." --weight=2
 
-configure_synapse
+ynh_add_jinja_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
+ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 ynh_add_config --template=sliding_proxy.conf --destination=/etc/matrix-$app/sliding_proxy.conf
 
 #=================================================

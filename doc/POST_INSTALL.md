@@ -2,7 +2,9 @@ If your server name is identical to the domain on which synapse is installed, an
 
 If not, you may need to put the following line in the dns configuration:
 
+```text
 _matrix._tcp.__DOMAIN__. 3600    IN      SRV     10 0 __PORT_SYNAPSE_TLS__ __DOMAIN__.
+```
 
 For more details, see : https://github.com/element-hq/synapse#setting-up-federation
 
