@@ -113,8 +113,8 @@ ensure_vars_set() {
 
         element_instance=element
         if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
-            element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-            element_path=$(ynh_app_setting_get --app $element_instance --key path)
+            element_domain=$(ynh_app_setting_get --app=$element_instance --key=domain)
+            element_path=$(ynh_app_setting_get --app=$element_instance --key=path)
             web_client_location="https://""$element_domain""$element_path"
         fi
         ynh_app_setting_set --app="$app" --key=web_client_location --value="$web_client_location"
