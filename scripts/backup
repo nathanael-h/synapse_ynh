@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-if systemctl is-active $app.service --quiet; then
+if systemctl is-active "$app".service --quiet; then
     ynh_print_warn --message="It's hightly recommended to make your backup when the service is stopped. Please stop $app service with this command before to run the backup 'systemctl stop $app.service'"
 fi
 
