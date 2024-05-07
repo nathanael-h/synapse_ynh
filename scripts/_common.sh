@@ -29,9 +29,9 @@ install_sources() {
         ynh_setup_source --dest_dir="$code_dir"/ --source_id="synapse_prebuilt_armv7_$(lsb_release --codename --short)"
 
         # Fix multi-instance support
-        for f in $(ls "$code_dir"/bin); do
+        for f in "$code_dir"/bin/*; do
             if ! [[ $f =~ "__" ]]; then
-                ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$code_dir --target_file="$code_dir"/bin/"$f"
+                ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'"$code_dir" --target_file="$f"
             fi
         done
     else
